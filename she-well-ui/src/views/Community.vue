@@ -4,7 +4,7 @@
       <template #content><span class="page-title">💬 姐妹社区</span></template>
     </el-page-header>
 
-    <el-tabs v-model="activeTab" style="margin-top: 16px">
+    <el-tabs v-model="activeTab" style="margin-top: 16px" @tab-change="onTabChange">
       <el-tab-pane label="话题" name="topics">
         <div v-for="topic in topics" :key="topic.id" class="topic-card" @click="loadPosts(topic.id)">
           <span class="topic-name"># {{ topic.name }}</span>
@@ -77,13 +77,36 @@
         </el-input>
       </div>
     </el-dialog>
+
+    <!-- 问答详情弹窗 -->
+    <el-dialog v-model="showQaDetail" :title="currentQuestion?.title" width="700px">
+      <div v-if="currentQuestion">
+        <el-alert type="info" :closable="false" style="margin-bottom:16px">
+          <template #title>{{ currentQuestion.category }} · {{ currentQuestion.viewCount || 0 }} 浏览 · {{ currentQuestion.answerCount || 0 }} 回答</template>
+        </el-alert>
+        <div style="line-height:1.8;margin-bottom:20px;font-size:15px">{{ currentQuestion.content }}</div>
+        <el-divider>回答</el-divider>
+        <div v-for="a in answers" :key="a.id" class="answer-item">
+          <div class="answer-header">
+            <el-tag v-if="a.isAccepted" type="success" size="small">✓ 已采纳</el-tag>
+            <span class="answer-likes" @click="doLikeAnswer(a)">❤️ {{ a.likeCount || 0 }}</span>
+          </div>
+          <div class="answer-content">{{ a.content }}</div>
+          <div class="answer-time">{{ a.createTime }}</div>
+        </div>
+        <div v-if="!answers.length" style="text-align:center;color:#999;padding:20px">暂无回答</div>
+        <el-input v-model="answerContent" type="textarea" :rows="3" placeholder="写下你的回答..." style="margin-top:16px">
+          <template #append><el-button @click="submitAnswer">发送</el-button></template>
+        </el-input>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { getTopics, getPosts, getComments } from '@/api'
+import { getTopics, getPosts, getComments, createPost, addComment, getQuestionList, getQuestionDetail, getAnswerList, createAnswer, likeAnswer } from '@/api'
 
 const activeTab = ref('topics')
 const topics = ref([])
@@ -91,43 +114,90 @@ const posts = ref([])
 const questions = ref([])
 const showCreatePost = ref(false)
 const showPostDetail = ref(false)
+const showQaDetail = ref(false)
 const currentPost = ref(null)
+const currentQuestion = ref(null)
+const answers = ref([])
 const comments = ref([])
 const commentContent = ref('')
 const postForm = ref({ topicId: null, title: '', content: '' })
+const answerContent = ref('')
 
 async function loadPosts(topicId) {
   activeTab.value = 'posts'
   try {
-    posts.value = await getPosts({ topicId })
+    const res = await getPosts({ topicId })
+    posts.value = res?.data?.list || res?.data || res || []
+  } catch {}
+}
+
+async function loadQuestions() {
+  try {
+    const res = await getQuestionList({ page: 1, size: 20 })
+    questions.value = res?.data?.list || res?.data || []
   } catch {}
 }
 
 async function submitPost() {
-  if (!postForm.value.title || !postForm.value.content) {
-    ElMessage.warning('请填写标题和内容'); return
-  }
-  ElMessage.success('帖子发布成功（演示模式）')
-  showCreatePost.value = false
-  postForm.value = { topicId: null, title: '', content: '' }
+  if (!postForm.value.title || !postForm.value.content) { ElMessage.warning('请填写标题和内容'); return }
+  try {
+    await createPost(postForm.value)
+    ElMessage.success('发布成功')
+    showCreatePost.value = false
+    postForm.value = { topicId: null, title: '', content: '' }
+    await loadPosts()
+  } catch { ElMessage.error('发布失败') }
 }
 
 async function openPost(post) {
   currentPost.value = post
   showPostDetail.value = true
   try {
-    comments.value = await getComments(post.id) || []
+    const res = await getComments(post.id)
+    comments.value = res?.data || []
   } catch { comments.value = [] }
 }
 
 async function submitComment() {
   if (!commentContent.value.trim()) return
-  ElMessage.success('评论成功（演示模式）')
-  commentContent.value = ''
+  try {
+    await addComment({ postId: currentPost.value.id, content: commentContent.value })
+    ElMessage.success('评论成功')
+    commentContent.value = ''
+    await openPost(currentPost.value)
+  } catch { ElMessage.error('评论失败') }
 }
 
 async function openQuestion(q) {
-  ElMessage.info('问答详情开发中')
+  currentQuestion.value = q
+  showQaDetail.value = true
+  try {
+    const res = await getAnswerList(q.id, { page: 1, size: 50 })
+    answers.value = (res?.data?.list || res?.data || []).map(a => ({ ...a, liked: false }))
+  } catch { answers.value = [] }
+}
+
+async function submitAnswer() {
+  if (!answerContent.value.trim()) return
+  try {
+    await createAnswer({ questionId: currentQuestion.value.id, content: answerContent.value })
+    ElMessage.success('回答成功')
+    answerContent.value = ''
+    await openQuestion(currentQuestion.value)
+  } catch { ElMessage.error('回答失败') }
+}
+
+async function doLikeAnswer(a) {
+  if (a.liked) return
+  try {
+    await likeAnswer(a.id)
+    a.likeCount = (a.likeCount || 0) + 1
+    a.liked = true
+  } catch { ElMessage.error('操作失败') }
+}
+
+function onTabChange(tab) {
+  if (tab === 'qa') loadQuestions()
 }
 
 onMounted(async () => {
@@ -156,4 +226,9 @@ onMounted(async () => {
 .qa-meta { margin-top: 8px; font-size: 13px; color: #999 }
 .comment-item { padding: 8px 0; border-bottom: 1px solid #f5f5f5; font-size: 14px }
 .comment-author { font-weight: 500; color: #666 }
+.answer-item { background: #fafafa; border-radius: 8px; padding: 16px; margin-bottom: 12px }
+.answer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px }
+.answer-likes { color: #999; font-size: 13px; cursor: pointer }
+.answer-content { font-size: 14px; line-height: 1.7; color: #333 }
+.answer-time { font-size: 12px; color: #999; margin-top: 8px }
 </style>

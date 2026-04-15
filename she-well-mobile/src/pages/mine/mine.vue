@@ -69,6 +69,16 @@
         <text class="menu-label">健康报告</text>
         <text class="menu-arrow">&gt;</text>
       </view>
+      <view class="menu-item" @click="toFertility">
+        <text class="menu-icon">🌈</text>
+        <text class="menu-label">生育力评估</text>
+        <text class="menu-arrow">&gt;</text>
+      </view>
+      <view class="menu-item" @click="toReminder">
+        <text class="menu-icon">⏰</text>
+        <text class="menu-label">健康提醒</text>
+        <text class="menu-arrow">&gt;</text>
+      </view>
       <view class="menu-item" @click="toNotification">
         <text class="menu-icon">🔔</text>
         <text class="menu-label">消息通知</text>
@@ -102,13 +112,15 @@ const achievements = ref([
 ])
 
 function toStats(type) { uni.showToast({ title: '数据统计', icon: 'none' }) }
-function toCommunity() { uni.showToast({ title: '姐妹社区', icon: 'none' }) }
+function toCommunity() { uni.navigateTo({ url: '/pages/qa/list' }) }
 function toExpert() { uni.showToast({ title: '专家问答', icon: 'none' }) }
-function toReport() { uni.showToast({ title: '健康报告', icon: 'none' }) }
+function toReport() { uni.navigateTo({ url: '/pages/report/index' }) }
 function toKnowledge() { uni.showToast({ title: '健康知识', icon: 'none' }) }
 function toNotification() { uni.showToast({ title: '消息通知', icon: 'none' }) }
 function toSettings() { uni.showToast({ title: '设置', icon: 'none' }) }
 function toAchievement() { uni.showToast({ title: '成就系统', icon: 'none' }) }
+function toFertility() { uni.navigateTo({ url: '/pages/fertility/index' }) }
+function toReminder() { uni.navigateTo({ url: '/pages/reminder/index' }) }
 
 function logout() {
   uni.showModal({

@@ -66,7 +66,7 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import * as echarts from 'echarts'
-import { getBabies, getHealthReports } from '@/api'
+import { getBabies, addPregnancyRecord, getPregnancyRecord } from '@/api'
 
 const babies = ref([])
 const checkupRecords = ref([])
@@ -76,8 +76,20 @@ const weightChartRef = ref(null)
 const bbtChartRef = ref(null)
 
 async function addCheckup() {
-  ElMessage.success('产检记录已添加（演示模式）')
-  showAddCheckup.value = false
+  if (!checkupForm.value.checkupDate) { ElMessage.warning('请选择日期'); return }
+  try {
+    await addPregnancyRecord(checkupForm.value)
+    ElMessage.success('添加成功')
+    showAddCheckup.value = false
+    await loadCheckups()
+  } catch { ElMessage.error('添加失败') }
+}
+
+async function loadCheckups() {
+  try {
+    const res = await getPregnancyRecord()
+    checkupRecords.value = res?.data?.checkupRecords || []
+  } catch {}
 }
 
 function initWeightChart() {
@@ -109,9 +121,10 @@ onMounted(async () => {
   initWeightChart()
   initBbtChart()
   try {
-    const babyList = await getBabies()
-    babies.value = babyList || []
+    const babyRes = await getBabies()
+    babies.value = babyRes?.data?.list || babyRes?.data || []
   } catch {}
+  await loadCheckups()
 })
 </script>
 

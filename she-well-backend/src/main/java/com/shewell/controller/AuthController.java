@@ -29,6 +29,7 @@ public class AuthController {
         user.setPhone(dto.getPhone());
         user.setNickname("用户" + dto.getPhone().substring(7));
         user.setStatus(1);
+        user.setPassword("NOLOGIN"); // 演示模式不设密码
         userService.save(user);
         String token = JwtUtil.generateToken(user.getId());
         LoginVO vo = new LoginVO();

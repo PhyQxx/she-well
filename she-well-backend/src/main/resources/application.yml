@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8097
   servlet:
     context-path: /
 
@@ -10,7 +10,7 @@ spring:
   # ========== MySQL ==========
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://mysql.pnkx.top:13306/she_well?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+    url: jdbc:mysql://127.0.0.1:3306/she_well?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
     username: root
     password: 123456
     type: com.alibaba.druid.pool.DruidDataSource

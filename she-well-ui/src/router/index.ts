@@ -17,6 +17,8 @@ const routes: RouteRecordRaw[] = [
       { path: 'discovery', name: 'Discovery', component: () => import('../views/Discovery.vue'), meta: { title: '发现' } },
       { path: 'achievement', name: 'Achievement', component: () => import('../views/Achievement.vue'), meta: { title: '成就' } },
       { path: 'notification', name: 'Notification', component: () => import('../views/Notification.vue'), meta: { title: '通知' } },
+      { path: 'fertility', name: 'Fertility', component: () => import('../views/Fertility.vue'), meta: { title: '生育力评估' } },
+      { path: 'reminder', name: 'Reminder', component: () => import('../views/Reminder.vue'), meta: { title: '健康提醒' } },
     ]
   },
   { path: '/login', name: 'Login', component: () => import('../views/Login.vue'), meta: { title: '登录' } },

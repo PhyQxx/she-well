@@ -79,6 +79,16 @@
       </view>
     </view>
 
+    <!-- 生育力评估入口 -->
+    <view class="fertility-entry" @click="goFertility">
+      <view class="fertility-icon">🌈</view>
+      <view class="fertility-info">
+        <view class="fertility-title">生育力评估</view>
+        <view class="fertility-sub">了解你的生育能力，科学备孕</view>
+      </view>
+      <view class="fertility-arrow">›</view>
+    </view>
+
     <!-- 添加同房弹窗 -->
     <view class="dialog-overlay" v-if="showIcDialog" @click="showIcDialog = false">
       <view class="dialog-box" @click.stop>
@@ -230,6 +240,10 @@ function addStripRecord() {
   uni.showToast({ title: '试纸记录功能开发中', icon: 'none' })
 }
 
+function goFertility() {
+  uni.navigateTo({ url: '/pages/fertility/index' })
+}
+
 onMounted(loadData)
 </script>
 
@@ -268,6 +282,12 @@ onMounted(loadData)
 .bbt-temp { font-size: 26rpx; font-weight: 600; color: #9C27B0 }
 .empty-tip { text-align: center; color: #ccc; font-size: 26rpx; padding: 24rpx }
 .add-strip-btn, .add-ic-btn, .add-bbt-btn { text-align: center; color: #9C27B0; font-size: 28rpx; padding: 16rpx; border: 2rpx dashed #CE93D8; border-radius: 12rpx; margin-top: 8rpx }
+.fertility-entry { margin: 0 32rpx 24rpx; background: linear-gradient(135deg, #9C27B0, #E91E63); border-radius: 20rpx; padding: 28rpx; display: flex; align-items: center; gap: 16rpx; color: #fff }
+.fertility-icon { font-size: 48rpx }
+.fertility-info { flex: 1 }
+.fertility-title { font-size: 30rpx; font-weight: bold }
+.fertility-sub { font-size: 24rpx; opacity: 0.85; margin-top: 4rpx }
+.fertility-arrow { font-size: 40rpx; opacity: 0.7 }
 .ai-section .ai-advice { background: #faf8fb; border-radius: 12rpx; padding: 20rpx; font-size: 26rpx; color: #555; line-height: 1.6; margin-bottom: 16rpx }
 .ai-loading { text-align: center; color: #9C27B0; font-size: 26rpx; padding: 20rpx }
 .ai-btn { text-align: center; background: linear-gradient(135deg, #9C27B0, #CE93D8); color: #fff; padding: 20rpx; border-radius: 12rpx; font-size: 28rpx }

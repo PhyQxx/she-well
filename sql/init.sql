@@ -19,6 +19,7 @@ CREATE TABLE `user` (
   `phone` varchar(20) DEFAULT NULL COMMENT '手机号',
   `avatar` varchar(255) DEFAULT NULL COMMENT '头像URL',
   `status` tinyint NOT NULL DEFAULT 1 COMMENT '状态：0=禁用，1=正常',
+  `nickname` varchar(50) DEFAULT NULL COMMENT '昵称',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),

@@ -9,6 +9,8 @@
         <el-menu-item index="/community"><el-icon><ChatDotRound /></el-icon> 社区</el-menu-item>
         <el-menu-item index="/knowledge"><el-icon><Reading /></el-icon> 知识库</el-menu-item>
         <el-menu-item index="/health"><el-icon><DataLine /></el-icon> 健康报告</el-menu-item>
+        <el-menu-item index="/fertility"><el-icon><TrendCharts /></el-icon> 生育力评估</el-menu-item>
+        <el-menu-item index="/reminder"><el-icon><Bell /></el-icon> 健康提醒</el-menu-item>
         <el-menu-item index="/settings"><el-icon><Setting /></el-icon> 设置</el-menu-item>
       </el-menu>
     </el-aside>
@@ -40,7 +42,8 @@ const auth = useAuthStore()
 const pageTitle = computed(() => {
   const map: Record<string,string> = {
     '/home': '首页', '/period': '经期管理', '/pregnancy': '备孕/怀孕',
-    '/community': '社区', '/knowledge': '知识库', '/health': '健康报告', '/settings': '设置'
+    '/community': '社区', '/knowledge': '知识库', '/health': '健康报告',
+    '/fertility': '生育力评估', '/reminder': '健康提醒', '/settings': '设置'
   }
   return map[route.path] || 'SheWell'
 })

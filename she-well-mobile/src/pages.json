@@ -8,7 +8,12 @@
     { "path": "pages/trying/index", "style": { "navigationBarTitleText": "备孕中心" } },
     { "path": "pages/pregnancy/index", "style": { "navigationBarTitleText": "怀孕日记" } },
     { "path": "pages/baby/index", "style": { "navigationBarTitleText": "宝宝成长" } },
-    { "path": "pages/ai/chat", "style": { "navigationBarTitleText": "AI 健康助手", "navigationStyle": "custom" } }
+    { "path": "pages/ai/chat", "style": { "navigationBarTitleText": "AI 健康助手", "navigationStyle": "custom" } },
+    { "path": "pages/fertility/index", "style": { "navigationBarTitleText": "生育力评估" } },
+    { "path": "pages/reminder/index", "style": { "navigationBarTitleText": "健康提醒" } },
+    { "path": "pages/qa/list", "style": { "navigationBarTitleText": "姐妹问答" } },
+    { "path": "pages/qa/detail", "style": { "navigationBarTitleText": "问答详情", "navigationStyle": "custom" } },
+    { "path": "pages/report/index", "style": { "navigationBarTitleText": "健康报告" } }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",

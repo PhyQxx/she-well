@@ -121,6 +121,15 @@ export const getExpertDetail = (id: number) => api.get(`/expert/${id}`)
 export const getQuestions = (params?: any) => api.get('/expert/questions', { params })
 export const askExpert = (data: any) => api.post('/expert/question', data)
 
+// ===== Community Q&A =====
+export const getQuestionList = (params?: any) => api.get('/community/question/list', { params })
+export const getQuestionDetail = (id: number) => api.get(`/community/question/${id}`)
+export const createQuestion = (data: any) => api.post('/community/question', data)
+export const acceptAnswer = (questionId: number, answerId: number) => api.put(`/community/question/${questionId}/accept`, { answerId })
+export const getAnswerList = (questionId: number, params?: any) => api.get('/community/answer/list', { params: { questionId, ...params } })
+export const createAnswer = (data: any) => api.post('/community/answer', data)
+export const likeAnswer = (id: number) => api.post(`/community/answer/${id}/like`)
+
 // ===== Activity =====
 export const getActivities = (params?: any) => api.get('/activity/list', { params })
 export const getActivityDetail = (id: number) => api.get(`/activity/${id}`)
@@ -130,6 +139,19 @@ export const getBabyList = () => api.get('/baby/list')
 export const getBaby = (id: number) => api.get(`/baby/${id}`)
 export const updateBaby = (id: number, data: any) => api.put(`/baby/${id}`, data)
 export const deleteBaby = (id: number) => api.delete(`/baby/${id}`)
+
+// ===== Fertility =====
+export const getSafePeriod = () => api.get('/fertility/safe-period')
+export const getFertilePeriod = () => api.get('/fertility/fertile-period')
+export const getFertilityAssessment = () => api.get('/fertility/assessment')
+export const getDailyChance = (params?: any) => api.get('/fertility/daily-chance', { params })
+
+// ===== Reminder =====
+export const getReminderList = () => api.get('/reminder/list')
+export const createReminder = (data: any) => api.post('/reminder', data)
+export const updateReminder = (id: number, data: any) => api.put(`/reminder/${id}`, data)
+export const deleteReminder = (id: number) => api.delete(`/reminder/${id}`)
+export const toggleReminder = (id: number, enabled: boolean) => api.put(`/reminder/${id}/toggle`, { enabled })
 
 // ===== File =====
 export const uploadAvatar = (file: File) => {

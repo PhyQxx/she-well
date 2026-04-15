@@ -149,6 +149,34 @@ export const ai = {
   healthAdvice: (data) => request('/api/ai/health-advice', { method: 'POST', data: data }),
 }
 
+// ========== 生育力 / 安全期 / 易孕期 ==========
+export const fertility = {
+  safePeriod: () => request('/api/fertility/safe-period'),
+  fertilePeriod: () => request('/api/fertility/fertile-period'),
+  assessment: () => request('/api/fertility/assessment'),
+  dailyChance: (params) => request('/api/fertility/daily-chance', { data: params }),
+}
+
+// ========== 健康提醒 ==========
+export const reminder = {
+  list: () => request('/api/reminder/list'),
+  create: (data) => request('/api/reminder', { method: 'POST', data }),
+  update: (id, data) => request('/api/reminder/' + id, { method: 'PUT', data }),
+  delete: (id) => request('/api/reminder/' + id, { method: 'DELETE' }),
+  toggle: (id, enabled) => request('/api/reminder/' + id + '/toggle', { method: 'PUT', data: { enabled } }),
+}
+
+// ========== 姐妹问答 ==========
+export const qa = {
+  list: (params) => request('/api/community/question/list', { data: params }),
+  detail: (id) => request('/api/community/question/' + id),
+  create: (data) => request('/api/community/question', { method: 'POST', data }),
+  accept: (questionId, answerId) => request('/api/community/question/' + questionId + '/accept', { method: 'PUT', data: { answerId } }),
+  answers: (questionId, params) => request('/api/community/answer/list', { data: { questionId, ...params } }),
+  answerCreate: (data) => request('/api/community/answer', { method: 'POST', data }),
+  answerLike: (id) => request('/api/community/answer/' + id + '/like', { method: 'POST' }),
+}
+
 // ========== 成就 ==========
 export const achievement = {
   list: () => request('/api/achievement/list'),
