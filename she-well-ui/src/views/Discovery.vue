@@ -111,9 +111,50 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import { getBanners, getActivities, getHotArticles2 } from '@/api'
 
 const keyword = ref('')
+const loading = ref(false)
+
+async function loadData() {
+  loading.value = true
+  try {
+    const [bannerRes, activityRes, articleRes] = await Promise.all([
+      getBanners(),
+      getActivities(),
+      getHotArticles2(4),
+    ])
+    banners.value = (bannerRes?.data || bannerRes || []).map(b => ({
+      id: b.id,
+      title: b.title || 'SheWell 资讯',
+      sub: b.subtitle || b.description || '',
+      bg: b.bgColor || 'linear-gradient(135deg, #E91E63, #F48FB1)',
+      link: b.linkUrl || '',
+    }))
+    activities.value = (activityRes?.data || activityRes || []).map(a => ({
+      id: a.id,
+      name: a.name || '活动',
+      date: a.startDate ? `${a.startDate.slice(5)}-${a.endDate?.slice(5) || ''}` : '长期',
+      participants: a.participantCount || 0,
+      bg: 'linear-gradient(135deg, #E91E63, #F48FB1)',
+    }))
+    articles.value = (articleRes?.data || articleRes || []).map(a => ({
+      id: a.id,
+      title: a.title,
+      icon: '📖',
+      category: a.categoryName || a.category || '健康',
+      views: a.viewCount || 0,
+      likes: a.likeCount || 0,
+      coverBg: 'linear-gradient(135deg, #E91E63, #F48FB1)',
+    }))
+  } catch (err) {
+    // use mock data on error
+  } finally {
+    loading.value = false
+  }
+}
 
 const banners = ref([
   { id: 1, title: '🌸 经期护理全攻略', sub: '科学应对经期不适', bg: 'linear-gradient(135deg, #E91E63, #F48FB1)', link: '/knowledge/1' },
@@ -161,6 +202,8 @@ function bannerClick(b) {}
 function activityClick(a) {}
 function viewArticle(a) {}
 function switchMode(key) { currentMode.value = key }
+
+onMounted(loadData)
 </script>
 
 <style scoped>

@@ -34,7 +34,10 @@
         </view>
       </view>
       <view class="tips-card">
-        <view class="tips-title">💡 今日建议</view>
+        <view class="tips-header">
+          <view class="tips-title">💡 今日建议</view>
+          <view class="tips-ai-btn" @click="goToAI">AI助手 🤖</view>
+        </view>
         <view class="tips-content">{{ todayTip }}</view>
       </view>
     </view>
@@ -97,7 +100,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 
 const currentMode = ref('period')
 const banners = ref([])
@@ -128,10 +131,10 @@ function recordPeriodStart() {
 }
 
 function toCheckin() { uni.switchTab({ url: '/pages/checkin/index' }) }
-
 function recordBbt() { uni.navigateTo({ url: '/pages/checkin/index?type=bbt' }) }
 function recordStrip() { uni.navigateTo({ url: '/pages/checkin/index?type=strip' }) }
 function recordIntercourse() { uni.navigateTo({ url: '/pages/checkin/index?type=intercourse' }) }
+function goToAI() { uni.navigateTo({ url: '/pages/ai/chat' }) }
 
 function babyAge(birthDate) {
   if (!birthDate) return ''
@@ -140,12 +143,12 @@ function babyAge(birthDate) {
   const months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth())
   if (months < 1) return '不足1个月'
   if (months < 12) return months + '个月'
-  return Math.floor(months / 12) + '岁'
+  return Math.floor(months / 12) + '岁' + (months % 12 > 0 ? (months % 12) + '个月' : '')
 }
 
 onMounted(() => {
   const token = uni.getStorageSync('sw_token')
-  if (!token) { uni.reLaunch({ url: '/pages/login/login' }); return }
+  if (!token) { uni.reLaunch({ url: '/pages/login/login' }) }
 })
 </script>
 
@@ -164,8 +167,10 @@ onMounted(() => {
 .action-btn { flex: 1; background: #fff; border-radius: 20rpx; padding: 32rpx 0; text-align: center; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.06) }
 .action-icon { display: block; font-size: 48rpx; margin-bottom: 8rpx }
 .action-label { font-size: 24rpx; color: #666 }
-.tips-card { background: #fff; border-radius: 20rpx; padding: 24rpx; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.06) }
-.tips-title { font-size: 28rpx; font-weight: 600; margin-bottom: 12rpx }
+.tips-card { background: #fff; border-radius: 20rpx; padding: 24rpx; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.06); margin-bottom: 24rpx }
+.tips-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12rpx }
+.tips-title { font-size: 28rpx; font-weight: 600 }
+.tips-ai-btn { font-size: 24rpx; color: #E91E63; background: #fff5f7; padding: 6rpx 16rpx; border-radius: 20rpx }
 .tips-content { font-size: 26rpx; color: #666; line-height: 1.8 }
 .ovulation-card { background: linear-gradient(135deg, #9C27B0, #CE93D8); border-radius: 24rpx; padding: 40rpx; text-align: center; color: #fff; margin-bottom: 24rpx }
 .ovu-title { font-size: 28rpx; opacity: 0.9; margin-bottom: 12rpx }
@@ -184,6 +189,6 @@ onMounted(() => {
 .baby-item:last-child { border-bottom: none }
 .baby-name { font-size: 30rpx; font-weight: 600; color: #333 }
 .baby-age { font-size: 26rpx; color: #999 }
-.nursing-tips { background: #fff; border-radius: 20rpx; padding: 24rpx }
+.nursing-tips { background: #fff; border-radius: 20rpx; padding: 24rpx; margin-bottom: 24rpx }
 .tabbar-placeholder { height: 120rpx }
 </style>

@@ -89,6 +89,10 @@ export const getRecommendArticles = (limit = 5) => api.get('/discovery/recommend
 export const getStatsOverview = () => api.get('/stats/overview')
 export const getMonthlyStats = (params: any) => api.get('/stats/period/monthly', { params })
 
+// ===== Achievement =====
+export const getAchievementList = () => api.get('/achievement/list')
+export const getMyAchievements = () => api.get('/achievement/my')
+
 // ===== Health Report =====
 export const getHealthReports = (params?: any) => api.get('/health-report/list', { params })
 export const getHealthReportDetail = (id: number) => api.get(`/health-report/${id}`)

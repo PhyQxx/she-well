@@ -83,19 +83,46 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
+import { getNotifications, getUnreadCount, markAllRead as markAllReadApi, markRead } from '@/api'
 
 const activeTab = ref('all')
-const notifications = ref([
-  { id: 1, type: 'system', icon: '🔔', title: '欢迎使用SheWell', body: '感谢您的注册，祝您使用愉快！', time: '2026-04-14 10:00', read: false },
-  { id: 2, type: 'checkin', icon: '✅', title: '打卡提醒', body: '今日健康打卡还未完成，记得记录哦~', time: '2026-04-14 09:00', read: false },
-  { id: 3, type: 'community', icon: '💬', title: '收到新回复', body: '姐妹"花开"回复了你的帖子《经期护肤心得》：写得真好！', time: '2026-04-13 22:00', read: false },
-  { id: 4, type: 'expert', icon: '👩‍⚕️', title: '专家回复通知', body: '王医生已回复您的问题"经期推迟一周是怎么回事"，点击查看', time: '2026-04-13 18:00', read: false },
-  { id: 5, type: 'system', icon: '🎁', title: '活动提醒', body: '21天打卡挑战正在进行中，已坚持5天，继续加油！', time: '2026-04-13 08:00', read: true },
-  { id: 6, type: 'checkin', icon: '🌡️', title: '体温记录提醒', body: '今日基础体温还未记录，早晨醒来后测量更准确哦', time: '2026-04-12 20:00', read: true },
-  { id: 7, type: 'community', icon: '❤️', title: '帖子被点赞', body: '您的帖子《备孕期间的营养补充》收到了10个赞', time: '2026-04-12 15:00', read: true },
-  { id: 8, type: 'expert', icon: '👩‍⚕️', title: '专家回复通知', body: '李医生已回复您的问题"孕早期饮食注意什么"，点击查看', time: '2026-04-11 14:00', read: true },
-])
+const notifications = ref([])
+const loading = ref(false)
+
+async function loadData() {
+  loading.value = true
+  try {
+    const [listRes, countRes] = await Promise.all([
+      getNotifications(),
+      getUnreadCount(),
+    ])
+    const list = listRes?.data || listRes || []
+    notifications.value = list.map(n => ({
+      id: n.id,
+      type: n.type || 'system',
+      icon: getIconByType(n.type),
+      title: n.title || n.content?.slice(0, 30) || '通知',
+      body: n.content || n.message || '',
+      time: n.createTime || n.createTime || '',
+      read: !!n.readTime,
+    }))
+  } catch (err) {
+    // fallback to mock data on error
+    notifications.value = [
+      { id: 1, type: 'system', icon: '🔔', title: '欢迎使用SheWell', body: '感谢您的注册，祝您使用愉快！', time: new Date().toISOString().slice(0,16).replace('T',' '), read: false },
+      { id: 2, type: 'checkin', icon: '✅', title: '打卡提醒', body: '今日健康打卡还未完成，记得记录哦~', time: new Date().toISOString().slice(0,16).replace('T',' '), read: false },
+    ]
+  } finally {
+    loading.value = false
+  }
+}
+
+function getIconByType(type) {
+  const map = { system: '🔔', checkin: '✅', community: '💬', expert: '👩‍⚕️', ai: '🤖', period: '🩸', activity: '🎁' }
+  return map[type] || '🔔'
+}
 
 const filteredNotifications = computed(() => {
   if (activeTab.value === 'all') return notifications.value
@@ -103,16 +130,38 @@ const filteredNotifications = computed(() => {
 })
 
 const unreadCount = computed(() => notifications.value.filter(n => !n.read).length)
-const todayCount = computed(() => notifications.value.filter(n => n.time.startsWith('2026-04-14')).length)
+const todayCount = computed(() => {
+  const today = new Date().toISOString().slice(0, 10)
+  return notifications.value.filter(n => n.time && n.time.startsWith(today)).length
+})
 const totalCount = computed(() => notifications.value.length)
 const systemUnread = computed(() => notifications.value.filter(n => n.type === 'system' && !n.read).length)
 const checkinUnread = computed(() => notifications.value.filter(n => n.type === 'checkin' && !n.read).length)
 const communityUnread = computed(() => notifications.value.filter(n => n.type === 'community' && !n.read).length)
 const expertUnread = computed(() => notifications.value.filter(n => n.type === 'expert' && !n.read).length)
 
-function markAllRead() { notifications.value.forEach(n => n.read = true) }
-function openNotification(n) { n.read = true }
-function deleteNotification(n) { notifications.value = notifications.value.filter(i => i.id !== n.id) }
+async function markAllRead() {
+  try {
+    await markAllReadApi()
+    notifications.value.forEach(n => n.read = true)
+    ElMessage.success('已全部标为已读')
+  } catch (err) {
+    ElMessage.error('操作失败')
+  }
+}
+
+async function openNotification(n) {
+  if (!n.read) {
+    try { await markRead(n.id) } catch (_) {}
+    n.read = true
+  }
+}
+
+function deleteNotification(n) {
+  notifications.value = notifications.value.filter(i => i.id !== n.id)
+}
+
+onMounted(loadData)
 </script>
 
 <style scoped>

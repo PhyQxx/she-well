@@ -9,13 +9,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/checkin")
+@RequestMapping("/api/habit")
 @RequiredArgsConstructor
 public class HabitController {
 
     private final HabitService habitService;
 
-    @GetMapping("/habit/list")
+    @GetMapping("/list")
     public Result<List<Habit>> list(HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         return Result.ok(habitService.lambdaQuery()
@@ -23,14 +23,14 @@ public class HabitController {
             .orderByDesc(Habit::getCreateTime).list());
     }
 
-    @PostMapping("/habit")
+    @PostMapping
     public Result<Habit> create(@RequestBody Habit habit, HttpServletRequest request) {
         habit.setUserId((Long) request.getAttribute("userId"));
         habitService.save(habit);
         return Result.ok(habit);
     }
 
-    @PutMapping("/habit/{id}")
+    @PutMapping("/{id}")
     public Result<Void> update(@PathVariable Long id, @RequestBody Habit habit, HttpServletRequest request) {
         habit.setId(id);
         habit.setUserId((Long) request.getAttribute("userId"));
@@ -38,7 +38,7 @@ public class HabitController {
         return Result.ok();
     }
 
-    @DeleteMapping("/habit/{id}")
+    @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id, HttpServletRequest request) {
         habitService.lambdaUpdate()
             .eq(Habit::getId, id)

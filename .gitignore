@@ -1,0 +1,53 @@
+# Java / Spring Boot
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+.springBeans
+!**/src/main/resources/application*.yml
+!**/src/main/resources/application*.yaml
+!**/src/main/resources/application*.properties
+
+# Node.js
+node_modules/
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+*.tsbuildinfo
+
+# Vue / Vite / UniApp
+she-well-ui/dist/
+she-well-ui/node_modules/
+she-well-ui/.vite/
+she-well-ui/vite.config.js.timestamp-*/
+
+she-well-mobile/unpackage/
+she-well-mobile/node_modules/
+she-well-mobile/dist/
+she-well-mobile/*.log
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts (avoid globbing issues)
+she-well-admin/dist/
+"she-well-backend/D:\\ office\\maven\\repository/"

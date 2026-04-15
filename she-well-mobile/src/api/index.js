@@ -140,10 +140,13 @@ export const community = {
 
 // ========== AI ==========
 export const ai = {
+  consult: (question, context) => request('/api/ai/consult', { method: 'POST', data: { question, context } }),
+  history: (page, size) => request('/api/ai/history', { data: { page, size } }),
+  advice: () => request('/api/ai/advice'),
   chat: (message, context) => request('/api/ai/chat', { method: 'POST', data: { message, context } }),
   analyzePeriod: (data) => request('/api/ai/analyze-period', { method: 'POST', data }),
   analyzeStrip: (imageBase64) => request('/api/ai/analyze-strip', { method: 'POST', data: { image: imageBase64 } }),
-  healthAdvice: (data) => request('/api/ai/health-advice', { method: 'POST', data }),
+  healthAdvice: (data) => request('/api/ai/health-advice', { method: 'POST', data: data }),
 }
 
 // ========== 成就 ==========
