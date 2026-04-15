@@ -82,31 +82,6 @@ ftp:
     banner: banner
     expert: expert
 
-# ========== AI 配置 ==========
-ai:
-  default-provider: deepseek
-  # DeepSeek
-  deepseek:
-    url: https://api.deepseek.com/chat/completions
-    model: deepseek-chat
-    api-key: ${DEEPSEEK_API_KEY:}
-    temperature: 0.7
-    max-tokens: 2000
-  # 智谱 GLM
-  glm:
-    url: https://open.bigmodel.cn/api/paas/v4/chat/completions
-    model: glm-4
-    api-key: ${GLM_API_KEY:}
-    temperature: 0.7
-    max-tokens: 2000
-  # MiniMax
-  minimax:
-    url: https://api.minimax.chat/v1/text/chatcompletion_v2
-    model: MiniMax-Text-01
-    api-key: ${MINIMAX_API_KEY:}
-    temperature: 0.7
-    max-tokens: 2000
-
 # ========== Knife4j (Swagger文档) ==========
 knife4j:
   enable: true

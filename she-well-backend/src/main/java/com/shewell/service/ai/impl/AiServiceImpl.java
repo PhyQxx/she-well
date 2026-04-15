@@ -1,13 +1,18 @@
 package com.shewell.service.ai.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shewell.entity.*;
+import com.shewell.service.SystemConfigService;
 import com.shewell.service.ai.AiService;
 import com.shewell.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import okhttp3.*;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.*;
@@ -21,12 +26,29 @@ public class AiServiceImpl implements AiService {
     private final PeriodRecordService periodRecordService;
     private final PeriodPredictionService periodPredictionService;
     private final CheckinRecordService checkinRecordService;
+    private final SystemConfigService systemConfigService;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final ObjectMapper objectMapper;
 
-    @Value("${ai.default-provider:deepseek}")
-    private String defaultProvider;
+    private static final MediaType JSON_TYPE = MediaType.get("application/json; charset=utf-8");
+    private static final OkHttpClient HTTP_CLIENT = new OkHttpClient.Builder()
+            .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+            .build();
 
     private static final String DISCLAIMER = "\n\n⚠️ **免责声明**：以上内容仅供参考，不能替代专业医生的诊断和治疗。如有不适，请及时就医。";
+
+    private static final Map<String, String> PROVIDER_NAMES = Map.of(
+            "deepseek", "DeepSeek",
+            "glm", "智谱 GLM",
+            "minimax", "MiniMax"
+    );
+
+    private static final Map<String, String> DEFAULT_URLS = Map.of(
+            "deepseek", "https://api.deepseek.com/chat/completions",
+            "glm", "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+            "minimax", "https://api.minimax.chat/v1/text/chatcompletion_v2"
+    );
 
     @Override
     public String consult(Long userId, String question, String context) {
@@ -72,11 +94,81 @@ public class AiServiceImpl implements AiService {
 
     @Override
     public List<AiModel> getAvailableModels() {
-        return List.of(
-            new AiModel("deepseek", "DeepSeek", "https://api.deepseek.com/chat/completions"),
-            new AiModel("glm", "智谱 GLM", "https://open.bigmodel.cn/api/paas/v4/chat/completions"),
-            new AiModel("minimax", "MiniMax", "https://api.minimax.chat/v1/text/chatcompletion_v2")
-        );
+        List<AiModel> models = new ArrayList<>();
+        for (String provider : List.of("deepseek", "glm", "minimax")) {
+            String url = getConfigValue("ai." + provider + ".url", DEFAULT_URLS.get(provider));
+            String name = PROVIDER_NAMES.getOrDefault(provider, provider);
+            models.add(new AiModel(provider, name, url));
+        }
+        return models;
+    }
+
+    private String callAi(String prompt) {
+        String provider = getConfigValue("ai.default_provider", "deepseek");
+        String apiKey = systemConfigService.getConfig("ai." + provider + ".api_key");
+
+        // 无 API Key 时走 demo 模式
+        if (apiKey == null || apiKey.isBlank()) {
+            log.warn("AI provider [{}] API Key 未配置，使用 demo 模式", provider);
+            return demoResponse(prompt);
+        }
+
+        String url = getConfigValue("ai." + provider + ".url", DEFAULT_URLS.get(provider));
+        String model = getConfigValue("ai." + provider + ".model", "deepseek-chat");
+        double temperature = Double.parseDouble(getConfigValue("ai." + provider + ".temperature", "0.7"));
+        int maxTokens = Integer.parseInt(getConfigValue("ai." + provider + ".max_tokens", "2000"));
+
+        try {
+            return doCallAi(url, apiKey, model, prompt, temperature, maxTokens);
+        } catch (Exception e) {
+            log.error("调用 AI API 失败 [provider={}]: {}", provider, e.getMessage(), e);
+            return demoResponse(prompt);
+        }
+    }
+
+    private String doCallAi(String url, String apiKey, String model, String prompt,
+                            double temperature, int maxTokens) throws IOException {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("model", model);
+        body.put("temperature", temperature);
+        body.put("max_tokens", maxTokens);
+        body.put("messages", List.of(
+                Map.of("role", "system", "content", "你是一名专业的女性健康助手，请用中文回答。"),
+                Map.of("role", "user", "content", prompt)
+        ));
+
+        String json = objectMapper.writeValueAsString(body);
+        Request request = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .addHeader("Content-Type", "application/json")
+                .post(RequestBody.create(json, JSON_TYPE))
+                .build();
+
+        try (Response response = HTTP_CLIENT.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                String errBody = response.body() != null ? response.body().string() : "";
+                throw new IOException("AI API 返回错误 " + response.code() + ": " + errBody);
+            }
+            String respBody = response.body().string();
+            JsonNode node = objectMapper.readTree(respBody);
+            return node.path("choices").path(0).path("message").path("content").asText();
+        }
+    }
+
+    private String demoResponse(String prompt) {
+        if (prompt.contains("每日健康建议")) {
+            return "【今日健康建议】\n\n🌸 **饮食**：建议多食用富含铁元素的食物，如红枣、菠菜、瘦肉，预防缺铁性贫血。\n\n🏃 **运动**：今日适合轻度运动，如散步、瑜伽，避免剧烈运动。\n\n💤 **作息**：保持7-8小时充足睡眠，避免熬夜。\n\n💊 **补充**：如有经前综合征，可适当补充维生素B6和镁元素。";
+        }
+        if (prompt.contains("周期分析")) {
+            return "【AI 周期分析报告】\n\n📊 **规律性评估**：您的周期较为规律（波动在±2天以内），表现良好。\n\n📈 平均周期：28天（正常范围25-35天）\n📉 平均经期：5天（正常范围3-7天）\n\n🔍 **异常分析**：未发现明显异常。\n\n💡 **建议**：继续保持规律作息和均衡饮食。\n\n📅 **下次预测**：基于近期数据，预计下次经期将在28天后开始。";
+        }
+        return "【AI 健康助手】收到您的问题。";
+    }
+
+    private String getConfigValue(String key, String defaultValue) {
+        String value = systemConfigService.getConfig(key);
+        return (value != null && !value.isBlank()) ? value : defaultValue;
     }
 
     private String buildAdvicePrompt(Long userId) {
@@ -137,16 +229,5 @@ public class AiServiceImpl implements AiService {
             sb.append("；");
         }
         return sb.toString();
-    }
-
-    private String callAi(String prompt) {
-        // 演示模式：返回模拟回复
-        if (prompt.contains("每日健康建议")) {
-            return "【今日健康建议】\n\n🌸 **饮食**：建议多食用富含铁元素的食物，如红枣、菠菜、瘦肉，预防缺铁性贫血。\n\n🏃 **运动**：今日适合轻度运动，如散步、瑜伽，避免剧烈运动。\n\n💤 **作息**：保持7-8小时充足睡眠，避免熬夜。\n\n💊 **补充**：如有经前综合征，可适当补充维生素B6和镁元素。";
-        }
-        if (prompt.contains("周期分析")) {
-            return "【AI 周期分析报告】\n\n📊 **规律性评估**：您的周期较为规律（波动在±2天以内），表现良好。\n\n📈 平均周期：28天（正常范围25-35天）\n📉 平均经期：5天（正常范围3-7天）\n\n🔍 **异常分析**：未发现明显异常。\n\n💡 **建议**：继续保持规律作息和均衡饮食。\n\n📅 **下次预测**：基于近期数据，预计下次经期将在28天后开始。";
-        }
-        return "【AI 健康助手】收到您的问题。" + DISCLAIMER;
     }
 }

@@ -2,6 +2,7 @@ package com.shewell.controller;
 
 import com.shewell.entity.Notification;
 import com.shewell.service.NotificationService;
+import com.shewell.service.SystemConfigService;
 import com.shewell.service.ai.AiService;
 import com.shewell.util.Result;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,6 +22,7 @@ public class AiController {
 
     private final AiService aiService;
     private final NotificationService notificationService;
+    private final SystemConfigService systemConfigService;
 
     /**
      * AI 健康咨询
@@ -106,7 +108,8 @@ public class AiController {
     }
 
     private String defaultProvider() {
-        return "deepseek";
+        String provider = systemConfigService.getConfig("ai.default_provider");
+        return provider != null ? provider : "deepseek";
     }
 
     // ===== DTO / VO =====

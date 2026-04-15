@@ -63,3 +63,7 @@ export const getPostList = (params?: any) => api.get('/community/posts', { param
 export const deletePost = (id: number) => api.delete(`/community/post/${id}`)
 export const getCommentList = (params?: any) => api.get('/community/comments', { params })
 export const deleteComment = (id: number) => api.delete(`/community/comment/${id}`)
+
+// ===== System Config =====
+export const getConfig = () => api.get('/admin/config')
+export const saveConfig = (data: Record<string, string>) => api.put('/admin/config', data)
