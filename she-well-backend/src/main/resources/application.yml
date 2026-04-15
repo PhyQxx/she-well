@@ -1,0 +1,122 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: she-well-backend
+
+  # ========== MySQL ==========
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://mysql.pnkx.top:13306/she_well?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+    username: root
+    password: 123456
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      max-wait: 60000
+
+  # ========== Redis ==========
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      database: 0
+      timeout: 5000
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+  # ========== 文件上传 ==========
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 100MB
+
+  # ========== knife4j (开发文档) ==========
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+# ========== MyBatis-Plus ==========
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: isDeleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.shewell.entity
+
+# ========== JWT ==========
+jwt:
+  secret: ${JWT_SECRET:she-well-jwt-secret-key-2026-phy}
+  ttl: ${JWT_TTL:86400000}
+
+# ========== FTP 文件存储 ==========
+ftp:
+  host: 127.0.0.1
+  port: 21
+  username: anonymous
+  password: ""
+  base-path: /
+  url-prefix: http://127.0.0.1
+  dir:
+    avatar: avatar
+    post: post
+    article: article
+    checkin: checkin
+    ovulation: ovulation
+    bbt: bbt
+    checkup: checkup
+    banner: banner
+    expert: expert
+
+# ========== AI 配置 ==========
+ai:
+  default-provider: deepseek
+  # DeepSeek
+  deepseek:
+    url: https://api.deepseek.com/chat/completions
+    model: deepseek-chat
+    api-key: ${DEEPSEEK_API_KEY:}
+    temperature: 0.7
+    max-tokens: 2000
+  # 智谱 GLM
+  glm:
+    url: https://open.bigmodel.cn/api/paas/v4/chat/completions
+    model: glm-4
+    api-key: ${GLM_API_KEY:}
+    temperature: 0.7
+    max-tokens: 2000
+  # MiniMax
+  minimax:
+    url: https://api.minimax.chat/v1/text/chatcompletion_v2
+    model: MiniMax-Text-01
+    api-key: ${MINIMAX_API_KEY:}
+    temperature: 0.7
+    max-tokens: 2000
+
+# ========== Knife4j (Swagger文档) ==========
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+
+# ========== 日志 ==========
+logging:
+  level:
+    com.shewell: DEBUG
+    com.baomidou.mybatisplus: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

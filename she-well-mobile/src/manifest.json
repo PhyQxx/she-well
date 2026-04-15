@@ -1,0 +1,45 @@
+{
+  "name": "SheWell",
+  "appid": "__UNI__SHEWELL",
+  "description": "女性健康生活方式管理",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "app-plus": {
+    "usingComponents": true,
+    "nvueStyleCompiler": "uni",
+    "compilerVersion": 3,
+    "splashscreen": {
+      "alwaysShowBeforeRender": true,
+      "waiting": true,
+      "autoclose": true,
+      "delay": 0
+    },
+    "modules": {},
+    "distribute": {
+      "android": {
+        "permissions": [
+          "<uses-permission android:name=\"android.permission.CAMERA\"/>",
+          "<uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\"/>",
+          "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>"
+        ]
+      },
+      "ios": {},
+      "sdkConfigs": {}
+    }
+  },
+  "quickapp": {},
+  "mp-weixin": {
+    "appid": "",
+    "setting": {
+      "urlCheck": false
+    },
+    "usingComponents": true
+  },
+  "h5": {
+    "title": "SheWell",
+    "router": {
+      "mode": "hash"
+    }
+  }
+}
