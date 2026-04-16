@@ -15,7 +15,7 @@
       </view>
       <view class="code-row">
         <input class="code-input" v-model="code" type="number" maxlength="6" placeholder="请输入验证码" />
-        <view class="code-btn" :class="{ disabled: countdown > 0 }" @click="sendCode">
+        <view class="code-btn" :class="{ disabled: countdown > 0 }" @click="handleSendCode">
           {{ countdown > 0 ? countdown + 's' : '获取验证码' }}
         </view>
       </view>
@@ -24,9 +24,9 @@
       </button>
       <view class="agreement">
         登录即表示同意
-        <text class="link" @click="toAgreement('user')">《用户协议》</text>
+        <text class="link">《用户协议》</text>
         和
-        <text class="link" @click="toAgreement('privacy')">《隐私政策》</text>
+        <text class="link">《隐私政策》</text>
       </view>
     </view>
   </view>
@@ -34,25 +34,31 @@
 
 <script setup>
 import { ref } from 'vue'
+import { auth } from '@/api/index.js'
 
 const phone = ref('')
 const code = ref('')
 const countdown = ref(0)
 const loading = ref(false)
 
-function sendCode() {
+async function handleSendCode() {
   if (!phone.value || phone.value.length !== 11) {
     uni.showToast({ title: '请输入正确手机号', icon: 'none' }); return
   }
-  countdown.value = 60
-  const timer = setInterval(() => {
-    countdown.value--
-    if (countdown.value <= 0) clearInterval(timer)
-  }, 1000)
-  uni.showToast({ title: '验证码已发送', icon: 'success' })
+  try {
+    await auth.sendCode(phone.value)
+    uni.showToast({ title: '验证码已发送', icon: 'success' })
+    countdown.value = 60
+    const timer = setInterval(() => {
+      countdown.value--
+      if (countdown.value <= 0) clearInterval(timer)
+    }, 1000)
+  } catch (e) {
+    uni.showToast({ title: '发送失败', icon: 'none' })
+  }
 }
 
-function doLogin() {
+async function doLogin() {
   if (!phone.value || phone.value.length !== 11) {
     uni.showToast({ title: '请输入手机号', icon: 'none' }); return
   }
@@ -60,16 +66,23 @@ function doLogin() {
     uni.showToast({ title: '请输入验证码', icon: 'none' }); return
   }
   loading.value = true
-  // 演示模式：任意6位验证码均可登录
-  setTimeout(() => {
-    uni.setStorageSync('sw_token', 'demo_token_' + Date.now())
-    uni.setStorageSync('sw_user', JSON.stringify({ phone: phone.value, nickname: '用户' + phone.value.slice(-4) }))
+  try {
+    const res = await auth.login(phone.value, code.value)
+    if (res && res.data) {
+      uni.setStorageSync('sw_token', res.data.token)
+      uni.setStorageSync('sw_user', JSON.stringify({
+        userId: res.data.userId,
+        nickname: res.data.nickname,
+        phone: phone.value
+      }))
+      uni.switchTab({ url: '/pages/index/index' })
+    }
+  } catch (e) {
+    uni.showToast({ title: '登录失败，请检查验证码', icon: 'none' })
+  } finally {
     loading.value = false
-    uni.switchTab({ url: '/pages/index/index' })
-  }, 1000)
+  }
 }
-
-function toAgreement(type) { uni.showToast({ title: type === 'user' ? '用户协议' : '隐私政策', icon: 'none' }) }
 </script>
 
 <style scoped>

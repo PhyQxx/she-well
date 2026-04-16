@@ -1,6 +1,6 @@
 // SheWell 移动端 API 层
 // 基础路径：通过 manifest.json 中配置的域名，或本地调试时使用本地地址
-const BASE_URL = 'http://localhost:8080'
+const BASE_URL = 'http://localhost:8097'
 
 // 请求封装
 function request(url, options = {}) {

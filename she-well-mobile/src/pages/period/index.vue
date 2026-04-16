@@ -5,7 +5,6 @@
       <view class="header-sub">{{ currentMonth }}</view>
     </view>
 
-    <!-- 周期概览 -->
     <view class="overview-card">
       <view class="overview-item">
         <view class="overview-num">{{ avgCycle }}</view>
@@ -23,7 +22,6 @@
       </view>
     </view>
 
-    <!-- 日历 -->
     <view class="calendar">
       <view class="cal-header">
         <view class="cal-nav" @click="prevMonth">&lt;</view>
@@ -54,23 +52,21 @@
       </view>
     </view>
 
-    <!-- 图例 -->
     <view class="legend">
       <view class="legend-item"><view class="legend-dot period" />经期</view>
       <view class="legend-item"><view class="legend-dot predicted" />预测</view>
       <view class="legend-item"><view class="legend-dot ovulation" />排卵</view>
     </view>
 
-    <!-- 经期记录列表 -->
     <view class="records-section">
       <view class="section-title">📝 经期记录</view>
       <view v-for="r in records" :key="r.id" class="record-item">
         <view class="record-left">
           <view class="record-date">{{ r.startDate }}</view>
-          <view class="record-duration">持续 {{ r.duration }} 天</view>
+          <view class="record-duration">持续 {{ r.duration || '-' }} 天</view>
         </view>
         <view class="record-right">
-          <view class="record-amount">{{ ['轻', '中', '重'][r.amount - 1] || '中' }}</view>
+          <view class="record-amount">{{ r.flowLevel ? ['轻', '中', '重'][r.flowLevel - 1] || '中' : '-' }}</view>
         </view>
       </view>
       <view v-if="!records.length" class="empty-tip">暂无经期记录</view>
@@ -79,51 +75,149 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { period } from '@/api/index.js'
 
 const weekdays = ['日', '一', '二', '三', '四', '五', '六']
-const currentMonth = ref('2026年4月')
-const avgCycle = ref(28)
-const avgDuration = ref(5)
-const cycleDay = ref(14)
-const currentYear = 2026
-const currentMonthIdx = 3  // 4月
+const now = new Date()
+const currentYear = ref(now.getFullYear())
+const currentMonthIdx = ref(now.getMonth() + 1)
+const currentMonth = ref('')
+const avgCycle = ref(0)
+const avgDuration = ref(0)
+const cycleDay = ref(0)
+const calendarDays = ref([])
+const records = ref([])
 
-const periodDays = [10, 11, 12, 13, 14]  // 经期日期
-const predictedDays = [6, 7, 8]  // 预测经期
-const ovulationDays = [22]  // 排卵日
+const periodDaySet = new Set()
+const predictedDaySet = new Set()
+const ovulationDaySet = new Set()
 
-const records = ref([
-  { id: 1, startDate: '2026-04-10', duration: 5, amount: 2 },
-  { id: 2, startDate: '2026-03-13', duration: 5, amount: 2 },
-  { id: 3, startDate: '2026-02-14', duration: 6, amount: 1 },
-])
+function updateMonthLabel() {
+  currentMonth.value = `${currentYear.value}年${currentMonthIdx.value}月`
+}
 
-function generateCalendarDays(year, month) {
-  const firstDay = new Date(year, month - 1, 1).getDay()
-  const daysInMonth = new Date(year, month, 0).getDate()
+function buildCalendarDays() {
+  const y = currentYear.value
+  const m = currentMonthIdx.value
+  const firstDay = new Date(y, m - 1, 1).getDay()
+  const daysInMonth = new Date(y, m, 0).getDate()
+  const today = new Date()
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
   const days = []
   for (let i = 0; i < firstDay; i++) days.push({ date: '', day: 0 })
   for (let d = 1; d <= daysInMonth; d++) {
-    const date = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+    const date = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
     days.push({
       date, day: d,
-      isPeriod: periodDays.includes(d),
-      isPredicted: predictedDays.includes(d),
-      isOvulation: ovulationDays.includes(d),
-      isToday: d === 14
+      isPeriod: periodDaySet.has(date),
+      isPredicted: predictedDaySet.has(date),
+      isOvulation: ovulationDaySet.has(date),
+      isToday: date === todayStr
     })
   }
-  return days
+  calendarDays.value = days
 }
 
-const calendarDays = ref(generateCalendarDays(currentYear, currentMonthIdx))
+function prevMonth() {
+  currentMonthIdx.value--
+  if (currentMonthIdx.value < 1) { currentMonthIdx.value = 12; currentYear.value-- }
+  updateMonthLabel()
+  buildCalendarDays()
+}
 
-function prevMonth() {}
-function nextMonth() {}
+function nextMonth() {
+  currentMonthIdx.value++
+  if (currentMonthIdx.value > 12) { currentMonthIdx.value = 1; currentYear.value++ }
+  updateMonthLabel()
+  buildCalendarDays()
+}
+
 function onDayClick(day) {
   if (!day.day) return
+  uni.showActionSheet({
+    itemList: ['记录为经期开始日'],
+    success: async (res) => {
+      if (res.tapIndex === 0) {
+        try {
+          await period.create({ startDate: day.date })
+          uni.showToast({ title: '记录成功', icon: 'success' })
+          loadData()
+        } catch { uni.showToast({ title: '记录失败', icon: 'none' }) }
+      }
+    }
+  })
 }
+
+// 生成日期范围（start 到 end 之间的所有日期字符串）
+function dateRange(startStr, endStr) {
+  const dates = []
+  if (!startStr || !endStr) return dates
+  const s = new Date(startStr)
+  const e = new Date(endStr)
+  for (let d = new Date(s); d <= e; d.setDate(d.getDate() + 1)) {
+    dates.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`)
+  }
+  return dates
+}
+
+async function loadData() {
+  periodDaySet.clear()
+  predictedDaySet.clear()
+  ovulationDaySet.clear()
+
+  // 加载经期记录
+  try {
+    const res = await period.list()
+    if (res.data) {
+      records.value = res.data
+      // 标记经期日
+      for (const r of res.data) {
+        if (r.startDate) {
+          const endDate = r.endDate || (r.duration ? new Date(new Date(r.startDate).getTime() + (r.duration - 1) * 86400000).toISOString().slice(0, 10) : r.startDate)
+          for (const d of dateRange(r.startDate, endDate)) {
+            periodDaySet.add(d)
+          }
+        }
+      }
+    }
+  } catch {}
+
+  // 加载预测数据
+  try {
+    const predRes = await period.prediction()
+    if (predRes.data) {
+      const pred = predRes.data
+      avgCycle.value = pred.cycleLength || 0
+      avgDuration.value = pred.periodLength || 0
+
+      // 标记预测经期日
+      if (pred.predictedNextDate) {
+        const endDate = new Date(new Date(pred.predictedNextDate).getTime() + ((pred.periodLength || 5) - 1) * 86400000).toISOString().slice(0, 10)
+        for (const d of dateRange(pred.predictedNextDate, endDate)) {
+          predictedDaySet.add(d)
+        }
+      }
+      // 标记排卵日
+      if (pred.ovulationDate) {
+        ovulationDaySet.add(pred.ovulationDate)
+      }
+      // 计算当前周期天数
+      if (pred.predictedStartDate) {
+        const start = new Date(pred.predictedStartDate)
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        start.setHours(0, 0, 0, 0)
+        cycleDay.value = Math.floor((today - start) / 86400000) + 1
+      }
+    }
+  } catch {}
+
+  buildCalendarDays()
+}
+
+updateMonthLabel()
+onMounted(() => loadData())
 </script>
 
 <style scoped>
@@ -144,7 +238,6 @@ function onDayClick(day) {
 .wd { flex: 1; text-align: center; font-size: 24rpx; color: #999; padding: 8rpx 0 }
 .cal-days { display: flex; flex-wrap: wrap }
 .cal-day { width: 14.28%; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 28rpx; color: #333; position: relative }
-.cal-day.empty { }
 .cal-day.is-today { background: #fce4ec; border-radius: 50%; font-weight: bold; color: #E91E63 }
 .cal-day.is-period { background: #F48FB1; border-radius: 50%; color: #fff }
 .cal-day.is-predicted { background: #f8bbd0; border-radius: 50%; color: #fff }
@@ -162,10 +255,8 @@ function onDayClick(day) {
 .records-section { background: #fff; margin: 0 32rpx; border-radius: 20rpx; padding: 24rpx }
 .section-title { font-size: 30rpx; font-weight: 600; margin-bottom: 16rpx }
 .record-item { display: flex; justify-content: space-between; padding: 16rpx 0; border-bottom: 1rpx solid #f5f5f5 }
-.record-left {}
 .record-date { font-size: 28rpx; font-weight: 500; color: #333 }
 .record-duration { font-size: 24rpx; color: #999 }
-.record-right {}
 .record-amount { font-size: 28rpx; color: #E91E63; font-weight: 500 }
 .empty-tip { text-align: center; color: #999; font-size: 26rpx; padding: 24rpx }
 </style>

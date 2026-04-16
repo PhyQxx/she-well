@@ -87,4 +87,26 @@ public class KnowledgeController {
         articleService.lambdaUpdate().setSql("collect_count = collect_count + 1").eq(KnowledgeArticle::getId, id).update();
         return Result.ok();
     }
+
+    // ===== 管理端文章 CRUD =====
+    @PostMapping("/article")
+    public Result<KnowledgeArticle> createArticle(@RequestBody KnowledgeArticle article) {
+        article.setPublishTime(java.time.LocalDateTime.now());
+        article.setStatus(1);
+        articleService.save(article);
+        return Result.ok(article);
+    }
+
+    @PutMapping("/article/{id}")
+    public Result<Void> updateArticle(@PathVariable Long id, @RequestBody KnowledgeArticle article) {
+        article.setId(id);
+        articleService.updateById(article);
+        return Result.ok();
+    }
+
+    @DeleteMapping("/article/{id}")
+    public Result<Void> deleteArticle(@PathVariable Long id) {
+        articleService.removeById(id);
+        return Result.ok();
+    }
 }

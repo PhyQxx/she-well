@@ -2,9 +2,9 @@
   <el-card shadow="hover">
     <template #header>
       <span style="font-weight:600">🎯 Banner管理</span>
-      <el-button type="primary" size="small" style="float:right" @click="showDialog = true">+ 添加Banner</el-button>
+      <el-button type="primary" size="small" style="float:right" @click="openDialog()">+ 添加Banner</el-button>
     </template>
-    <el-table :data="list" stripe>
+    <el-table :data="list" stripe v-loading="loading">
       <el-table-column prop="id" label="ID" width="60" />
       <el-table-column prop="title" label="标题" />
       <el-table-column prop="imageUrl" label="图片" width="120">
@@ -23,7 +23,7 @@
       <el-table-column prop="createTime" label="创建时间" width="160" />
       <el-table-column label="操作" width="180">
         <template #default="{ row }">
-          <el-button size="small" @click="editRow(row)">编辑</el-button>
+          <el-button size="small" @click="openDialog(row)">编辑</el-button>
           <el-button size="small" type="danger" @click="deleteRow(row)">删除</el-button>
         </template>
       </el-table-column>
@@ -56,35 +56,53 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { getBannerList, createBanner, updateBanner, deleteBanner } from '@/api'
 
 const list = ref([])
+const loading = ref(false)
 const showDialog = ref(false)
 const form = ref({ id: null, title: '', imageUrl: '', linkValue: '', sortOrder: 0, status: 1 })
 
-function editRow(row) { form.value = { ...row }; showDialog.value = true }
-async function deleteRow(row) {
-  await ElMessageBox.confirm('确认删除该Banner？', '提示')
-  list.value = list.value.filter(i => i.id !== row.id)
-  ElMessage.success('已删除')
-}
-function onImgSuccess(res) { form.value.imageUrl = res.data }
-function submitForm() {
-  if (!form.value.title) { ElMessage.warning('请填写标题'); return }
-  if (form.value.id) {
-    const idx = list.value.findIndex(i => i.id === form.value.id)
-    if (idx > -1) list.value[idx] = { ...form.value }
-  } else {
-    list.value.unshift({ ...form.value, id: Date.now(), createTime: new Date().toISOString().slice(0, 16) })
-  }
-  showDialog.value = false
-  ElMessage.success('保存成功')
+async function loadData() {
+  loading.value = true
+  try {
+    const res = await getBannerList()
+    list.value = res.data || []
+  } catch { ElMessage.error('加载Banner列表失败') }
+  finally { loading.value = false }
 }
 
-// 演示数据
-list.value = [
-  { id: 1, title: '妇女节活动banner', imageUrl: '', linkValue: '/activity/1', sortOrder: 1, status: 1, createTime: '2026-03-01 10:00' },
-  { id: 2, title: '经期健康知识专题', imageUrl: '', linkValue: '/knowledge/1', sortOrder: 2, status: 1, createTime: '2026-03-05 10:00' },
-]
+function openDialog(row) {
+  form.value = row ? { ...row } : { id: null, title: '', imageUrl: '', linkValue: '', sortOrder: 0, status: 1 }
+  showDialog.value = true
+}
+
+function onImgSuccess(res) { form.value.imageUrl = res.data }
+
+async function submitForm() {
+  if (!form.value.title) { ElMessage.warning('请填写标题'); return }
+  try {
+    if (form.value.id) {
+      await updateBanner(form.value.id, form.value)
+    } else {
+      await createBanner(form.value)
+    }
+    showDialog.value = false
+    ElMessage.success('保存成功')
+    loadData()
+  } catch { ElMessage.error('保存失败') }
+}
+
+async function deleteRow(row) {
+  await ElMessageBox.confirm('确认删除该Banner？', '提示')
+  try {
+    await deleteBanner(row.id)
+    ElMessage.success('已删除')
+    loadData()
+  } catch { ElMessage.error('删除失败') }
+}
+
+onMounted(() => loadData())
 </script>

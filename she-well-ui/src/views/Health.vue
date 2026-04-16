@@ -92,34 +92,48 @@ async function loadCheckups() {
   } catch {}
 }
 
-function initWeightChart() {
-  if (!weightChartRef.value) return
-  const chart = echarts.init(weightChartRef.value)
-  chart.setOption({
-    tooltip: { trigger: 'axis' },
-    xAxis: { type: 'category', data: ['4/1', '4/8', '4/15', '4/22', '4/29'] },
-    yAxis: { type: 'value', name: 'kg' },
-    series: [{ data: [52.0, 51.8, 52.1, 51.9, 52.2], type: 'line', smooth: true, color: '#E91E63' }]
-  })
+async function loadWeightChart() {
+  try {
+    const apiModule = await import('@/api')
+    const api = apiModule.default
+    const res = await api.get('/checkin/metrics/list', { params: { metricType: 'weight' } })
+    const data = res?.data || []
+    if (data.length > 0 && weightChartRef.value) {
+      const chart = echarts.init(weightChartRef.value)
+      chart.setOption({
+        tooltip: { trigger: 'axis' },
+        xAxis: { type: 'category', data: data.map(d => d.date?.slice(5) || '') },
+        yAxis: { type: 'value', name: 'kg' },
+        series: [{ data: data.map(d => d.value), type: 'line', smooth: true, color: '#E91E63' }]
+      })
+    }
+  } catch {}
 }
 
-function initBbtChart() {
-  if (!bbtChartRef.value) return
-  const chart = echarts.init(bbtChartRef.value)
-  chart.setOption({
-    tooltip: { trigger: 'axis' },
-    xAxis: { type: 'category', data: ['4/1', '4/2', '4/3', '4/4', '4/5', '4/6', '4/7'] },
-    yAxis: { type: 'value', name: '℃', min: 35.8, max: 37.2 },
-    series: [{
-      data: [36.2, 36.3, 36.4, 36.5, 36.4, 36.8, 36.9],
-      type: 'line', smooth: true, color: '#F48FB1'
-    }]
-  })
+async function loadBbtChart() {
+  try {
+    const apiModule = await import('@/api')
+    const api = apiModule.default
+    const res = await api.get('/period/bbt/list')
+    const data = (res?.data || []).slice(0, 14).reverse()
+    if (data.length > 0 && bbtChartRef.value) {
+      const chart = echarts.init(bbtChartRef.value)
+      chart.setOption({
+        tooltip: { trigger: 'axis' },
+        xAxis: { type: 'category', data: data.map(d => d.measureDate?.slice(5) || '') },
+        yAxis: { type: 'value', name: '℃', min: 35.8, max: 37.2 },
+        series: [{
+          data: data.map(d => d.temperature),
+          type: 'line', smooth: true, color: '#F48FB1'
+        }]
+      })
+    }
+  } catch {}
 }
 
 onMounted(async () => {
-  initWeightChart()
-  initBbtChart()
+  loadWeightChart()
+  loadBbtChart()
   try {
     const babyRes = await getBabies()
     babies.value = babyRes?.data?.list || babyRes?.data || []

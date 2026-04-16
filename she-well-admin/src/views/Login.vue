@@ -15,7 +15,6 @@
           </el-button>
         </el-form-item>
       </el-form>
-      <div class="tips">演示账号：admin / admin123</div>
     </div>
   </div>
 </template>
@@ -24,21 +23,32 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import api from '@/api'
 
 const router = useRouter()
 const form = ref({ username: '', password: '' })
 const loading = ref(false)
 
-function handleLogin() {
+async function handleLogin() {
   if (!form.value.username || !form.value.password) {
     ElMessage.warning('请输入账号和密码'); return
   }
-  // 演示模式：固定账号通过
-  if (form.value.username === 'admin' && form.value.password === 'admin123') {
-    localStorage.setItem('sw_admin_token', 'demo_token_admin')
-    router.push('/dashboard')
-  } else {
+  loading.value = true
+  try {
+    const res = await api.post('/auth/admin-login', {
+      username: form.value.username,
+      password: form.value.password
+    })
+    if (res.data && res.data.token) {
+      localStorage.setItem('sw_admin_token', res.data.token)
+      router.push('/dashboard')
+    } else {
+      ElMessage.error('登录失败')
+    }
+  } catch {
     ElMessage.error('账号或密码错误')
+  } finally {
+    loading.value = false
   }
 }
 </script>
@@ -53,5 +63,4 @@ function handleLogin() {
   width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,0.15);
 }
 h2 { text-align: center; margin-bottom: 32px; color: #E91E63 }
-.tips { text-align: center; color: #999; font-size: 13px; margin-top: 8px }
 </style>

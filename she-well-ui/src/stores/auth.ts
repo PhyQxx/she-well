@@ -9,8 +9,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isLoggedIn = computed(() => !!token.value)
 
-  async function login(phone: string) {
-    const res: any = await api.post('/auth/login', { phone, code: '123456' })
+  async function login(phone: string, code: string) {
+    const res: any = await api.post('/auth/login', { phone, code })
     if (res.success) {
       token.value = res.data.token
       userId.value = res.data.userId

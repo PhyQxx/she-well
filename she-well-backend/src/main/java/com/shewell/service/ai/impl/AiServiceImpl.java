@@ -80,15 +80,10 @@ public class AiServiceImpl implements AiService {
     @Override
     public StripResult recognizeStrip(String imageBase64) {
         StripResult result = new StripResult();
-        Random rand = new Random();
-        int r = rand.nextInt(3);
-        String[] results = {"positive", "negative", "weak_positive"};
-        result.setResult(results[r]);
-        result.setLhValue(Double.valueOf(r == 0 ? 25.0 : r == 2 ? 12.5 : 5.0));
-        result.setConfidence(0.85 + rand.nextDouble() * 0.1);
-        result.setAdvice(r == 0 ? "检测到强阳性，提示即将/正在排卵，建议在24-48小时内安排同房。"
-            : r == 2 ? "检测到弱阳性，建议继续监测。"
-            : "检测结果为阴性，建议继续监测排卵试纸。");
+        result.setResult("unknown");
+        result.setLhValue(0.0);
+        result.setConfidence(0.0);
+        result.setAdvice("排卵试纸智能识别功能需要接入视觉AI模型，暂不可用。请根据试纸说明书手动对比结果。");
         return result;
     }
 
@@ -107,10 +102,8 @@ public class AiServiceImpl implements AiService {
         String provider = getConfigValue("ai.default_provider", "deepseek");
         String apiKey = systemConfigService.getConfig("ai." + provider + ".api_key");
 
-        // 无 API Key 时走 demo 模式
         if (apiKey == null || apiKey.isBlank()) {
-            log.warn("AI provider [{}] API Key 未配置，使用 demo 模式", provider);
-            return demoResponse(prompt);
+            throw new RuntimeException("AI 服务未配置 API Key，请在系统设置中配置 " + provider + " 的 API Key");
         }
 
         String url = getConfigValue("ai." + provider + ".url", DEFAULT_URLS.get(provider));
@@ -122,7 +115,7 @@ public class AiServiceImpl implements AiService {
             return doCallAi(url, apiKey, model, prompt, temperature, maxTokens);
         } catch (Exception e) {
             log.error("调用 AI API 失败 [provider={}]: {}", provider, e.getMessage(), e);
-            return demoResponse(prompt);
+            throw new RuntimeException("AI 服务调用失败：" + e.getMessage());
         }
     }
 
@@ -154,16 +147,6 @@ public class AiServiceImpl implements AiService {
             JsonNode node = objectMapper.readTree(respBody);
             return node.path("choices").path(0).path("message").path("content").asText();
         }
-    }
-
-    private String demoResponse(String prompt) {
-        if (prompt.contains("每日健康建议")) {
-            return "【今日健康建议】\n\n🌸 **饮食**：建议多食用富含铁元素的食物，如红枣、菠菜、瘦肉，预防缺铁性贫血。\n\n🏃 **运动**：今日适合轻度运动，如散步、瑜伽，避免剧烈运动。\n\n💤 **作息**：保持7-8小时充足睡眠，避免熬夜。\n\n💊 **补充**：如有经前综合征，可适当补充维生素B6和镁元素。";
-        }
-        if (prompt.contains("周期分析")) {
-            return "【AI 周期分析报告】\n\n📊 **规律性评估**：您的周期较为规律（波动在±2天以内），表现良好。\n\n📈 平均周期：28天（正常范围25-35天）\n📉 平均经期：5天（正常范围3-7天）\n\n🔍 **异常分析**：未发现明显异常。\n\n💡 **建议**：继续保持规律作息和均衡饮食。\n\n📅 **下次预测**：基于近期数据，预计下次经期将在28天后开始。";
-        }
-        return "【AI 健康助手】收到您的问题。";
     }
 
     private String getConfigValue(String key, String defaultValue) {

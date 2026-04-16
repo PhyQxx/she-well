@@ -40,13 +40,13 @@ export const updateArticle = (id: number, data: any) => api.put(`/knowledge/arti
 export const deleteArticle = (id: number) => api.delete(`/knowledge/article/${id}`)
 
 // ===== User =====
-export const getUserList = (params?: any) => api.get('/admin/users', { params })
-export const disableUser = (id: number) => api.put(`/admin/user/${id}/disable`)
-export const enableUser = (id: number) => api.put(`/admin/user/${id}/enable`)
+export const getUserList = (params?: any) => api.get('/admin/user/list', { params })
+export const updateUserStatus = (id: number, status: number) => api.put(`/admin/user/${id}/status`, { status })
+export const resetUserPassword = (id: number, password?: string) => api.put(`/admin/user/${id}/reset-password`, password ? { password } : {})
 
 // ===== Expert =====
-export const getExpertList = (params?: any) => api.get('/expert/list', { params })
-export const approveExpert = (id: number, data?: any) => api.put(`/expert/${id}/approve`, data)
+export const getExpertList = (params?: any) => api.get('/expert/all', { params })
+export const approveExpert = (id: number) => api.put(`/expert/${id}/approve`)
 export const rejectExpert = (id: number, reason: string) => api.put(`/expert/${id}/reject`, { reason })
 
 // ===== Question =====
@@ -57,12 +57,17 @@ export const deleteQuestion = (id: number) => api.delete(`/expert/question/${id}
 export const getActivityList = (params?: any) => api.get('/activity/list', { params })
 export const createActivity = (data: any) => api.post('/activity', data)
 export const updateActivity = (id: number, data: any) => api.put(`/activity/${id}`, data)
+export const deleteActivity = (id: number) => api.delete(`/activity/${id}`)
 
 // ===== Community =====
 export const getPostList = (params?: any) => api.get('/community/posts', { params })
 export const deletePost = (id: number) => api.delete(`/community/post/${id}`)
 export const getCommentList = (params?: any) => api.get('/community/comments', { params })
 export const deleteComment = (id: number) => api.delete(`/community/comment/${id}`)
+
+// ===== Dashboard Stats =====
+export const getDashboardStats = () => api.get('/admin/stats/dashboard')
+export const getTrendStats = (days?: number) => api.get('/admin/stats/trend', { params: { days: days || 7 } })
 
 // ===== System Config =====
 export const getConfig = () => api.get('/admin/config')

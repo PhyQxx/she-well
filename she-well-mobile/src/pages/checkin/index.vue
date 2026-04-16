@@ -117,6 +117,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { checkin, bbt, ovulation, intercourse } from '@/api/index.js'
 
 const today = new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })
 const currentType = ref('period')
@@ -158,10 +159,53 @@ function togglePeriodTag(tag) {
   else selectedPeriodTags.value.push(tag)
 }
 function toggleExercise(e) { const idx = selectedExercises.value.indexOf(e); if (idx > -1) selectedExercises.value.splice(idx, 1); else selectedExercises.value.push(e) }
-function uploadStripImg() {}
+function uploadStripImg() {
+  uni.chooseImage({
+    count: 1,
+    success: (res) => { stripImg.value = res.tempFilePaths[0] }
+  })
+}
 
-function submitCheckin() {
-  uni.showToast({ title: '打卡成功', icon: 'success' })
+async function submitCheckin() {
+  const todayDate = new Date().toISOString().slice(0, 10)
+  try {
+    if (currentType.value === 'period') {
+      await checkin.create({
+        checkinDate: todayDate,
+        symptom: selectedPeriodTags.value.join(','),
+        mood: selectedEmotion.value,
+        notes: diary.value,
+      })
+    } else if (currentType.value === 'bbt') {
+      await bbt.create({
+        temperature: currentTemp.value,
+        measureDate: todayDate,
+      })
+    } else if (currentType.value === 'strip') {
+      await ovulation.create({
+        recordDate: todayDate,
+        result: selectedStrip.value,
+        imageUrl: stripImg.value,
+      })
+    } else if (currentType.value === 'intercourse') {
+      await intercourse.create({
+        intercourseDate: icDate.value || todayDate,
+        note: icNote.value,
+      })
+    } else if (currentType.value === 'lifestyle') {
+      await checkin.create({
+        checkinDate: todayDate,
+        emotion: selectedEmotion.value,
+        sleepQuality: selectedSleep.value,
+        exerciseType: selectedExercises.value.join(','),
+      })
+    } else {
+      await checkin.create({ checkinDate: todayDate })
+    }
+    uni.showToast({ title: '打卡成功', icon: 'success' })
+  } catch {
+    uni.showToast({ title: '打卡失败，请重试', icon: 'none' })
+  }
 }
 
 onMounted(() => {

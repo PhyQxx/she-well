@@ -151,10 +151,15 @@ async function loadData() {
 async function getAiAdvice() {
   aiLoading.value = true
   try {
-    await new Promise(r => setTimeout(r, 1500))
-    aiAdvice.value = `根据您的周期数据分析：\n\n1. 您的易孕期预计在 ${fertilePeriod.value.fertileStart?.slice(5,10) || '—'} ~ ${fertilePeriod.value.fertileEnd?.slice(5,10) || '—'} 之间，排卵日约为 ${fertilePeriod.value.peakOvulation?.slice(5,10) || '—'}。\n\n2. 建议在此期间保持规律作息，避免熬夜，提高受孕几率。\n\n3. 每日补充叶酸 0.4mg，提前3个月开始服用效果最佳。\n\n4. 如有需要，可使用排卵试纸辅助监测排卵日。`
+    const apiModule = await import('@/api')
+    const api = apiModule.default
+    const res = await api.post('/ai/consult', {
+      question: '请根据我的生育力数据，给出备孕建议和注意事项',
+      context: JSON.stringify({ fertilePeriod: fertilePeriod.value, assessment: assessment.value })
+    })
+    aiAdvice.value = res?.data?.answer || res?.data || '暂无建议'
   } catch (e) {
-    ElMessage.error('生成失败')
+    ElMessage.error('AI 服务暂不可用')
   } finally {
     aiLoading.value = false
   }

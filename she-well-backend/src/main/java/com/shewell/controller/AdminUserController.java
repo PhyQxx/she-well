@@ -1,5 +1,6 @@
 package com.shewell.controller;
 
+import cn.hutool.crypto.digest.BCrypt;
 import com.shewell.entity.User;
 import com.shewell.entity.UserProfile;
 import com.shewell.service.UserService;
@@ -65,8 +66,12 @@ public class AdminUserController {
     }
 
     @PutMapping("/{id}/reset-password")
-    public Result<Void> resetPassword(@PathVariable Long id, @RequestBody Map<String, String> body) {
-        // 演示：重置密码为123456
+    public Result<Void> resetPassword(@PathVariable Long id, @RequestBody(required = false) Map<String, String> body) {
+        User user = userService.getById(id);
+        if (user == null) return Result.fail("用户不存在");
+        String newPassword = (body != null && body.containsKey("password")) ? body.get("password") : "123456";
+        user.setPassword(BCrypt.hashpw(newPassword));
+        userService.updateById(user);
         return Result.ok();
     }
 

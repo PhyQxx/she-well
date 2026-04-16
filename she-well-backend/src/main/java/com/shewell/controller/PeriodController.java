@@ -70,16 +70,105 @@ public class PeriodController {
     @PostMapping("/prediction/calculate")
     public Result<PeriodPrediction> calculatePrediction(HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
+
+        // 查询用户最近的经期记录（最多6条）
+        List<PeriodRecord> records = periodRecordService.lambdaQuery()
+            .eq(PeriodRecord::getUserId, userId)
+            .eq(PeriodRecord::getIsPhysicalDelete, 0)
+            .orderByDesc(PeriodRecord::getStartDate)
+            .last("LIMIT 6").list();
+
+        if (records.isEmpty()) {
+            return Result.fail("暂无经期记录，请先记录经期数据");
+        }
+
         PeriodPrediction pp = periodPredictionService.lambdaQuery()
             .eq(PeriodPrediction::getUserId, userId).one();
         if (pp == null) {
             pp = new PeriodPrediction();
             pp.setUserId(userId);
         }
-        // 简单预测逻辑：下次经期 = lastPeriod + cycleLength
-        pp.setCycleLength(28);
-        pp.setPeriodLength(5);
-        pp.setPredictionConfidence(new java.math.BigDecimal("0.85"));
+
+        // 最近一次经期
+        PeriodRecord latest = records.get(0);
+        LocalDate lastStart = latest.getStartDate();
+        int avgDuration = latest.getDuration() != null ? latest.getDuration() : 5;
+
+        // 计算平均周期长度
+        int avgCycle = 28;
+        if (records.size() >= 2) {
+            int totalDays = 0;
+            int count = 0;
+            for (int i = 0; i < records.size() - 1; i++) {
+                if (records.get(i).getStartDate() != null && records.get(i + 1).getStartDate() != null) {
+                    long days = java.time.temporal.ChronoUnit.DAYS.between(
+                        records.get(i + 1).getStartDate(), records.get(i).getStartDate());
+                    if (days > 15 && days < 60) { // 排除异常值
+                        totalDays += days;
+                        count++;
+                    }
+                }
+            }
+            if (count > 0) avgCycle = totalDays / count;
+
+            // 如果有多条记录，计算平均经期天数
+            int totalDuration = 0;
+            int durationCount = 0;
+            for (PeriodRecord r : records) {
+                if (r.getDuration() != null && r.getDuration() > 0) {
+                    totalDuration += r.getDuration();
+                    durationCount++;
+                }
+            }
+            if (durationCount > 0) avgDuration = totalDuration / durationCount;
+        }
+
+        // 预测下次经期
+        LocalDate nextStart = lastStart.plusDays(avgCycle);
+        LocalDate nextEnd = nextStart.plusDays(avgDuration - 1);
+
+        // 排卵日 = 下次经期前14天
+        LocalDate ovulationDate = nextStart.minusDays(14);
+
+        // 易孕期 = 排卵日前5天到排卵日后1天
+        LocalDate fertileStart = ovulationDate.minusDays(5);
+        LocalDate fertileEnd = ovulationDate.plusDays(1);
+
+        // 计算置信度：基于历史记录数量和规律性
+        java.math.BigDecimal confidence = new java.math.BigDecimal("0.60");
+        if (records.size() >= 3) confidence = new java.math.BigDecimal("0.75");
+        if (records.size() >= 5) confidence = new java.math.BigDecimal("0.85");
+        if (records.size() >= 2) {
+            // 检查规律性
+            double variance = 0;
+            int count = 0;
+            double avg = avgCycle;
+            for (int i = 0; i < records.size() - 1; i++) {
+                if (records.get(i).getStartDate() != null && records.get(i + 1).getStartDate() != null) {
+                    long days = java.time.temporal.ChronoUnit.DAYS.between(
+                        records.get(i + 1).getStartDate(), records.get(i).getStartDate());
+                    if (days > 15 && days < 60) {
+                        variance += Math.pow(days - avg, 2);
+                        count++;
+                    }
+                }
+            }
+            if (count > 0) {
+                double stdDev = Math.sqrt(variance / count);
+                if (stdDev < 2) confidence = confidence.add(new java.math.BigDecimal("0.10"));
+                else if (stdDev > 5) confidence = confidence.subtract(new java.math.BigDecimal("0.10"));
+            }
+        }
+
+        pp.setCycleLength(avgCycle);
+        pp.setPeriodLength(avgDuration);
+        pp.setPredictedStartDate(lastStart);
+        pp.setPredictedEndDate(lastStart.plusDays(avgDuration - 1));
+        pp.setPredictedNextDate(nextStart);
+        pp.setOvulationDate(ovulationDate);
+        pp.setFertileStartDate(fertileStart);
+        pp.setFertileEndDate(fertileEnd);
+        pp.setPredictionConfidence(confidence);
         pp.setLastCalculated(LocalDateTime.now());
         periodPredictionService.saveOrUpdate(pp);
         return Result.ok(pp);

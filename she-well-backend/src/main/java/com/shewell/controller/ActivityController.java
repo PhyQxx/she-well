@@ -29,4 +29,27 @@ public class ActivityController {
         Activity activity = activityService.getById(id);
         return activity != null ? Result.ok(activity) : Result.fail("活动不存在");
     }
+
+    // ===== 管理端活动 CRUD =====
+    @PostMapping
+    public Result<Activity> create(@RequestBody Activity activity) {
+        activity.setCreateTime(java.time.LocalDateTime.now());
+        activity.setStatus("active");
+        if (activity.getParticipantCount() == null) activity.setParticipantCount(0);
+        activityService.save(activity);
+        return Result.ok(activity);
+    }
+
+    @PutMapping("/{id}")
+    public Result<Void> update(@PathVariable Long id, @RequestBody Activity activity) {
+        activity.setId(id);
+        activityService.updateById(activity);
+        return Result.ok();
+    }
+
+    @DeleteMapping("/{id}")
+    public Result<Void> delete(@PathVariable Long id) {
+        activityService.removeById(id);
+        return Result.ok();
+    }
 }

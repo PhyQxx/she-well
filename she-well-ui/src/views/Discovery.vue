@@ -150,30 +150,17 @@ async function loadData() {
       coverBg: 'linear-gradient(135deg, #E91E63, #F48FB1)',
     }))
   } catch (err) {
-    // use mock data on error
+    ElMessage.error('加载发现页数据失败')
   } finally {
     loading.value = false
   }
 }
 
-const banners = ref([
-  { id: 1, title: '🌸 经期护理全攻略', sub: '科学应对经期不适', bg: 'linear-gradient(135deg, #E91E63, #F48FB1)', link: '/knowledge/1' },
-  { id: 2, title: '🤰 备孕指南', sub: '提高受孕率的科学方法', bg: 'linear-gradient(135deg, #9C27B0, #CE93D8)', link: '/knowledge/2' },
-  { id: 3, title: '💪 21天打卡挑战', sub: '坚持打卡赢好礼', bg: 'linear-gradient(135deg, #4CAF50, #A5D6A7)', link: '/activity/1' },
-])
+const banners = ref([])
 
-const activities = ref([
-  { id: 1, name: '21天打卡挑战', date: '4.1-4.21', participants: 1234, bg: 'linear-gradient(135deg, #E91E63, #F48FB1)' },
-  { id: 2, name: '女性健康知识赛', date: '5.1-5.7', participants: 0, bg: 'linear-gradient(135deg, #9C27B0, #CE93D8)' },
-  { id: 3, name: '专家问答活动', date: '长期', participants: 567, bg: 'linear-gradient(135deg, #2196F3, #90CAF9)' },
-])
+const activities = ref([])
 
-const articles = ref([
-  { id: 1, title: '经期疼痛缓解的10个科学方法', icon: '🩸', category: '经期护理', views: 2341, likes: 186, coverBg: 'linear-gradient(135deg, #E91E63, #F48FB1)' },
-  { id: 2, title: '排卵试纸使用全攻略', icon: '🧪', category: '备孕指南', views: 1892, likes: 142, coverBg: 'linear-gradient(135deg, #9C27B0, #CE93D8)' },
-  { id: 3, title: '孕早期营养补充指南', icon: '🍎', category: '孕期保健', views: 3210, likes: 256, coverBg: 'linear-gradient(135deg, #4CAF50, #A5D6A7)' },
-  { id: 4, title: '产后恢复的7个关键点', icon: '💐', category: '产后恢复', views: 1567, likes: 198, coverBg: 'linear-gradient(135deg, #2196F3, #90CAF9)' },
-])
+const articles = ref([])
 
 const modes = [
   { key: 'period', label: '经期模式', icon: '📅' },
@@ -183,25 +170,24 @@ const modes = [
 ]
 const currentMode = ref('period')
 
-const todayTasks = ref([
-  { id: 1, label: '记录基础体温', reward: 5, done: false },
-  { id: 2, label: '完成健康打卡', reward: 10, done: false },
-  { id: 3, label: '阅读1篇健康知识', reward: 5, done: false },
-])
+const todayTasks = ref([])
 
-const wikiList = ref([
-  { id: 1, title: '基础体温测量方法', icon: '🌡️' },
-  { id: 2, title: '排卵试纸怎么看', icon: '🧪' },
-  { id: 3, title: '孕早期注意事项', icon: '🤰' },
-  { id: 4, title: '产后第一天护理', icon: '💐' },
-  { id: 5, title: '婴儿抚触手法', icon: '👶' },
-])
+const wikiList = ref([])
 
-function search() {}
-function bannerClick(b) {}
-function activityClick(a) {}
-function viewArticle(a) {}
-function switchMode(key) { currentMode.value = key }
+function search() {
+  if (!keyword.value) return
+  ElMessage.info(`搜索：${keyword.value}`)
+}
+function bannerClick(b) { if (b.link) window.location.hash = b.link }
+function activityClick(a) { ElMessage.info(`活动：${a.name}`) }
+function viewArticle(a) { if (a.id) window.location.hash = `/knowledge/${a.id}` }
+async function switchMode(key) {
+  currentMode.value = key
+  try {
+    const api = (await import('@/api')).default
+    await api.put('/settings/mode', { mode: key })
+  } catch {}
+}
 
 onMounted(loadData)
 </script>

@@ -21,7 +21,8 @@
     <view v-if="currentMode === 'period'" class="mode-content">
       <view class="date-ring">
         <view class="ring-title">{{ isPeriod ? '经期第 ' + periodDay + ' 天' : '距下次经期还有 ' + daysUntilNext + ' 天' }}</view>
-        <view class="ring-subtitle">{{ nextPeriodDate }} 预计来经</view>
+        <view class="ring-subtitle" v-if="nextPeriodDate">{{ nextPeriodDate }} 预计来经</view>
+        <view class="ring-subtitle" v-else>暂无预测数据</view>
       </view>
       <view class="quick-actions">
         <view class="action-btn pink" @click="recordPeriodStart">
@@ -46,9 +47,9 @@
     <view v-if="currentMode === 'trying'" class="mode-content">
       <view class="ovulation-card">
         <view class="ovu-title">🎯 排卵日预测</view>
-        <view class="ovu-date">{{ ovulationDate }}</view>
+        <view class="ovu-date">{{ ovulationDate || '暂无数据' }}</view>
         <view class="ovu-days" v-if="daysToOvulation > 0">还有 {{ daysToOvulation }} 天</view>
-        <view class="ovu-days active" v-else>今天是排卵日！</view>
+        <view class="ovu-days active" v-else-if="ovulationDate">今天是排卵日！</view>
       </view>
       <view class="quick-actions">
         <view class="action-btn green" @click="recordBbt">
@@ -71,7 +72,7 @@
       <view class="preg-card">
         <view class="preg-week">孕第 {{ pregWeek }} 周</view>
         <view class="preg-day">第 {{ pregDay }} 天</view>
-        <view class="preg-edd">预产期：{{ edd }}</view>
+        <view class="preg-edd">预产期：{{ edd || '暂未设置' }}</view>
       </view>
       <view class="preg-checkup">
         <view class="checkup-title">📅 下次产检</view>
@@ -94,28 +95,28 @@
       </view>
     </view>
 
-    <!-- 底部 TabBar 固定 -->
     <view class="tabbar-placeholder" />
   </view>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { period, user, discovery, pregnancy, baby } from '@/api/index.js'
 
 const currentMode = ref('period')
 const banners = ref([])
-const periodDay = ref(2)
-const isPeriod = ref(true)
-const daysUntilNext = ref(14)
-const nextPeriodDate = ref('2026-05-01')
-const ovulationDate = ref('2026-04-22')
-const daysToOvulation = ref(5)
-const pregWeek = ref(16)
-const pregDay = ref(3)
-const edd = ref('2026-10-15')
-const nextCheckup = ref({ date: '2026-04-20', item: '唐筛检查' })
+const periodDay = ref(0)
+const isPeriod = ref(false)
+const daysUntilNext = ref(0)
+const nextPeriodDate = ref('')
+const ovulationDate = ref('')
+const daysToOvulation = ref(0)
+const pregWeek = ref(0)
+const pregDay = ref(0)
+const edd = ref('')
+const nextCheckup = ref(null)
 const babies = ref([])
-const todayTip = ref('经期第二天，适当休息，避免剧烈运动和生冷食物。')
+const todayTip = ref('记录每日健康状况，获得个性化建议。')
 
 const modes = [
   { key: 'period', label: '📅 经期' },
@@ -124,10 +125,103 @@ const modes = [
   { key: 'nursing', label: '🍼 妈妈' },
 ]
 
-function switchMode(mode) { currentMode.value = mode }
+async function switchMode(mode) {
+  currentMode.value = mode
+  try { await user.switchMode(mode) } catch {}
+}
+
+async function loadData() {
+  // 加载用户设置（当前模式）
+  try {
+    const settingsRes = await user.getSettings()
+    if (settingsRes.data && settingsRes.data.currentMode) {
+      currentMode.value = settingsRes.data.currentMode
+    }
+  } catch {}
+
+  // 加载轮播图
+  try {
+    const bannerRes = await discovery.banners()
+    if (bannerRes.data) banners.value = bannerRes.data
+  } catch {}
+
+  // 加载经期预测数据
+  try {
+    const predRes = await period.prediction()
+    if (predRes.data) {
+      const pred = predRes.data
+      if (pred.predictedStartDate) {
+        const start = new Date(pred.predictedStartDate)
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        start.setHours(0, 0, 0, 0)
+        const diffDays = Math.floor((today - start) / 86400000)
+        if (diffDays >= 0 && diffDays < (pred.periodLength || 5)) {
+          isPeriod.value = true
+          periodDay.value = diffDays + 1
+        }
+      }
+      if (pred.predictedNextDate) {
+        nextPeriodDate.value = pred.predictedNextDate
+        const next = new Date(pred.predictedNextDate)
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        next.setHours(0, 0, 0, 0)
+        const diff = Math.ceil((next - today) / 86400000)
+        daysUntilNext.value = diff > 0 ? diff : 0
+      }
+      if (pred.ovulationDate) {
+        ovulationDate.value = pred.ovulationDate
+        const ovu = new Date(pred.ovulationDate)
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        ovu.setHours(0, 0, 0, 0)
+        daysToOvulation.value = Math.ceil((ovu - today) / 86400000)
+      }
+    }
+  } catch {}
+
+  // 加载怀孕记录（如果是怀孕模式）
+  if (currentMode.value === 'pregnancy') {
+    try {
+      const pregRes = await pregnancy.getRecord()
+      if (pregRes.data) {
+        const preg = pregRes.data
+        if (preg.dueDate) edd.value = preg.dueDate
+        if (preg.lmpDate) {
+          const lmp = new Date(preg.lmpDate)
+          const now = new Date()
+          const days = Math.floor((now - lmp) / 86400000)
+          pregWeek.value = Math.floor(days / 7)
+          pregDay.value = days % 7
+        }
+      }
+    } catch {}
+  }
+
+  // 加载宝宝列表（如果是妈妈模式）
+  if (currentMode.value === 'nursing') {
+    try {
+      const babyRes = await baby.list()
+      if (babyRes.data) babies.value = babyRes.data
+    } catch {}
+  }
+}
 
 function recordPeriodStart() {
-  uni.showModal({ title: '提示', content: '经期开始记录已提交', showCancel: false })
+  uni.showModal({
+    title: '记录经期',
+    content: '确认记录今天为经期开始日？',
+    success: async (res) => {
+      if (res.confirm) {
+        try {
+          await period.create({ startDate: new Date().toISOString().slice(0, 10) })
+          uni.showToast({ title: '记录成功', icon: 'success' })
+          loadData()
+        } catch { uni.showToast({ title: '记录失败', icon: 'none' }) }
+      }
+    }
+  })
 }
 
 function toCheckin() { uni.switchTab({ url: '/pages/checkin/index' }) }
@@ -149,6 +243,7 @@ function babyAge(birthDate) {
 onMounted(() => {
   const token = uni.getStorageSync('sw_token')
   if (!token) { uni.reLaunch({ url: '/pages/login/login' }) }
+  else { loadData() }
 })
 </script>
 

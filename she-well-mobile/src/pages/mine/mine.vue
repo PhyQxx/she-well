@@ -4,7 +4,7 @@
     <view class="profile-card">
       <view class="profile-bg" />
       <view class="profile-info">
-        <image class="avatar" src="/static/avatar-default.png" mode="aspectFill" />
+        <image class="avatar" :src="avatar || '/static/avatar-default.png'" mode="aspectFill" />
         <view class="user-details">
           <view class="nickname">{{ nickname || '未登录' }}</view>
           <view class="user-mode" v-if="modeLabel">{{ modeLabel }}</view>
@@ -98,18 +98,52 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { user, achievement, checkin, period as periodApi } from '@/api/index.js'
 
-const nickname = ref('小红')
-const modeLabel = ref('经期模式')
+const nickname = ref('')
+const avatar = ref('')
+const modeLabel = ref('')
 const isLoggedIn = ref(true)
-const statsData = ref({ checkinDays: 45, periodCount: 12, postCount: 5, achievementCount: 8 })
-const achievements = ref([
-  { id: 1, icon: '🌸', name: '初次记录', unlocked: true },
-  { id: 2, icon: '📅', name: '坚持7天', unlocked: true },
-  { id: 3, icon: '🔥', name: '坚持30天', unlocked: true },
-  { id: 4, icon: '🏆', name: '妇科达人', unlocked: false },
-  { id: 5, icon: '⭐', name: '五星好评', unlocked: false },
-])
+const statsData = ref({ checkinDays: 0, periodCount: 0, postCount: 0, achievementCount: 0 })
+const achievements = ref([])
+
+async function loadProfile() {
+  try {
+    const res = await user.getProfile()
+    if (res.data) {
+      nickname.value = res.data.nickname || '用户'
+      avatar.value = res.data.avatar || ''
+      const modeMap = { period: '经期模式', trying: '备孕模式', pregnancy: '怀孕模式', nursing: '育儿模式' }
+      modeLabel.value = modeMap[res.data.currentMode] || ''
+    }
+  } catch {}
+}
+
+async function loadStats() {
+  try {
+    const checkinRes = await checkin.list()
+    if (checkinRes.data) statsData.value.checkinDays = checkinRes.data.length || 0
+  } catch {}
+  try {
+    const periodRes = await periodApi.list()
+    if (periodRes.data) statsData.value.periodCount = periodRes.data.length || 0
+  } catch {}
+}
+
+async function loadAchievements() {
+  try {
+    const res = await achievement.my()
+    if (res.data) {
+      statsData.value.achievementCount = res.data.length
+      achievements.value = res.data.slice(0, 5).map(a => ({
+        id: a.achievementId,
+        icon: '🏆',
+        name: '成就',
+        unlocked: a.status === 1
+      }))
+    }
+  } catch {}
+}
 
 function toStats(type) { uni.showToast({ title: '数据统计', icon: 'none' }) }
 function toCommunity() { uni.navigateTo({ url: '/pages/qa/list' }) }
@@ -138,6 +172,7 @@ function logout() {
 onMounted(() => {
   const token = uni.getStorageSync('sw_token')
   if (!token) { uni.reLaunch({ url: '/pages/login/login' }) }
+  else { loadProfile(); loadStats(); loadAchievements() }
 })
 </script>
 

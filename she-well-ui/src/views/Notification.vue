@@ -109,11 +109,7 @@ async function loadData() {
       read: !!n.readTime,
     }))
   } catch (err) {
-    // fallback to mock data on error
-    notifications.value = [
-      { id: 1, type: 'system', icon: '🔔', title: '欢迎使用SheWell', body: '感谢您的注册，祝您使用愉快！', time: new Date().toISOString().slice(0,16).replace('T',' '), read: false },
-      { id: 2, type: 'checkin', icon: '✅', title: '打卡提醒', body: '今日健康打卡还未完成，记得记录哦~', time: new Date().toISOString().slice(0,16).replace('T',' '), read: false },
-    ]
+    notifications.value = []
   } finally {
     loading.value = false
   }

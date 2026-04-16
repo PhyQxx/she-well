@@ -4,10 +4,12 @@ import com.shewell.entity.User;
 import com.shewell.entity.CommunityPost;
 import com.shewell.entity.CheckinRecord;
 import com.shewell.entity.KnowledgeArticle;
+import com.shewell.entity.Settings;
 import com.shewell.service.UserService;
 import com.shewell.service.CommunityPostService;
 import com.shewell.service.CheckinRecordService;
 import com.shewell.service.KnowledgeArticleService;
+import com.shewell.service.SettingsService;
 import com.shewell.util.Result;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +26,7 @@ public class AdminStatsController {
     private final CommunityPostService postService;
     private final CheckinRecordService checkinService;
     private final KnowledgeArticleService articleService;
+    private final SettingsService settingsService;
 
     @GetMapping("/dashboard")
     public Result<Map<String, Object>> dashboard() {
@@ -77,7 +80,10 @@ public class AdminStatsController {
 
     @GetMapping("/mode-distribution")
     public Result<Map<String, Object>> modeDistribution() {
-        // Settings 表记录用户模式
-        return Result.ok(Map.of("period", 0, "trying", 0, "pregnancy", 0, "nursing", 0));
+        long period = settingsService.lambdaQuery().eq(Settings::getCurrentMode, "period").count();
+        long trying = settingsService.lambdaQuery().eq(Settings::getCurrentMode, "trying").count();
+        long pregnancy = settingsService.lambdaQuery().eq(Settings::getCurrentMode, "pregnancy").count();
+        long nursing = settingsService.lambdaQuery().eq(Settings::getCurrentMode, "nursing").count();
+        return Result.ok(Map.of("period", period, "trying", trying, "pregnancy", pregnancy, "nursing", nursing));
     }
 }

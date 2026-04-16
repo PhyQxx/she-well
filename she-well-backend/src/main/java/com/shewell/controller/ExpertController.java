@@ -84,4 +84,37 @@ public class ExpertController {
             .eq(ExpertAnswer::getStatus, 1)
             .orderByDesc(ExpertAnswer::getCreateTime).list());
     }
+
+    // ===== 管理端专家审批 =====
+    @GetMapping("/all")
+    public Result<List<Expert>> getAllExperts() {
+        return Result.ok(expertService.lambdaQuery().orderByDesc(Expert::getCreateTime).list());
+    }
+
+    @PutMapping("/{id}/approve")
+    public Result<Void> approve(@PathVariable Long id) {
+        Expert expert = expertService.getById(id);
+        if (expert == null) return Result.fail("专家不存在");
+        expert.setCertificationStatus("approved");
+        expert.setStatus(1);
+        expert.setCertifyTime(java.time.LocalDateTime.now());
+        expertService.updateById(expert);
+        return Result.ok();
+    }
+
+    @PutMapping("/{id}/reject")
+    public Result<Void> reject(@PathVariable Long id, @RequestBody java.util.Map<String, String> body) {
+        Expert expert = expertService.getById(id);
+        if (expert == null) return Result.fail("专家不存在");
+        expert.setCertificationStatus("rejected");
+        expert.setRejectReason(body.get("reason"));
+        expertService.updateById(expert);
+        return Result.ok();
+    }
+
+    @DeleteMapping("/question/{id}")
+    public Result<Void> deleteQuestion(@PathVariable Long id) {
+        questionService.removeById(id);
+        return Result.ok();
+    }
 }

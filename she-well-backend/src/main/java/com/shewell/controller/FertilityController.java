@@ -32,17 +32,42 @@ public class FertilityController {
     @GetMapping("/safe-period")
     public Result<Map<String, Object>> safePeriod(HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
-        LocalDate today = LocalDate.now();
-        LocalDate fertileStart = today.plusDays(1);
-        LocalDate fertileEnd = today.plusDays(5);
-        // 经期第1-4天为绝对安全期
-        LocalDate periodStart = today.minusDays(2);
-        LocalDate periodEnd = today.plusDays(1);
+
+        // 获取预测数据
+        PeriodPrediction pred = periodPredictionService.lambdaQuery()
+            .eq(PeriodPrediction::getUserId, userId).one();
+
         Map<String, Object> result = new LinkedHashMap<>();
-        result.put("absoluteSafeStart", periodStart);
-        result.put("absoluteSafeEnd", periodEnd);
-        result.put("relativeSafeStart", fertileEnd.plusDays(1));
-        result.put("relativeSafeEnd", today.plusDays(10));
+
+        if (pred != null && pred.getPredictedNextDate() != null && pred.getOvulationDate() != null) {
+            LocalDate nextPeriod = pred.getPredictedNextDate();
+            LocalDate ovulation = pred.getOvulationDate();
+            LocalDate fertileStart = ovulation.minusDays(5);
+            LocalDate fertileEnd = ovulation.plusDays(1);
+            int periodLength = pred.getPeriodLength() != null ? pred.getPeriodLength() : 5;
+
+            // 经期期间（月经期）= 绝对安全期
+            LocalDate periodStart = nextPeriod;
+            LocalDate periodEnd = nextPeriod.plusDays(periodLength - 1);
+            // 经期结束到易孕期开始前 = 相对安全期
+            LocalDate relativeSafeStart = periodEnd.plusDays(1);
+            LocalDate relativeSafeEnd = fertileStart.minusDays(1);
+            // 易孕期结束后到下次经期前 = 相对安全期
+            LocalDate postFertileSafeStart = fertileEnd.plusDays(1);
+            LocalDate postFertileSafeEnd = nextPeriod.minusDays(1);
+
+            result.put("absoluteSafeStart", periodStart);
+            result.put("absoluteSafeEnd", periodEnd);
+            result.put("relativeSafeStart", relativeSafeStart);
+            result.put("relativeSafeEnd", relativeSafeEnd);
+            result.put("postFertileSafeStart", postFertileSafeStart);
+            result.put("postFertileSafeEnd", postFertileSafeEnd);
+            result.put("fertileStart", fertileStart);
+            result.put("fertileEnd", fertileEnd);
+        } else {
+            // 无预测数据，先尝试计算
+            result.put("message", "暂无足够的经期数据，请先记录经期并计算预测");
+        }
         return Result.ok(result);
     }
 
@@ -60,10 +85,8 @@ public class FertilityController {
             result.put("peakOvulation", ovulation);
             result.put("peakDays", List.of(ovulation.minusDays(1), ovulation, ovulation.plusDays(1)));
         } else {
-            // 无预测数据时返回估算
-            result.put("fertileStart", LocalDate.now().plusDays(10));
-            result.put("fertileEnd", LocalDate.now().plusDays(16));
-            result.put("peakOvulation", LocalDate.now().plusDays(14));
+            // 无预测数据，返回提示
+            result.put("message", "暂无预测数据，请先记录经期并计算预测");
         }
         return Result.ok(result);
     }
