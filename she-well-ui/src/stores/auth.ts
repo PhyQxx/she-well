@@ -16,6 +16,8 @@ export const useAuthStore = defineStore('auth', () => {
       userId.value = res.data.userId
       nickname.value = res.data.nickname
       localStorage.setItem('sw_token', res.data.token)
+    } else {
+      throw new Error(res.message || '登录失败')
     }
     return res
   }

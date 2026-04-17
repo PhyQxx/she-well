@@ -1,76 +1,121 @@
 <template>
   <view class="period-page">
-    <view class="header">
-      <view class="header-title">📅 周期日历</view>
-      <view class="header-sub">{{ currentMonth }}</view>
+    <!-- 头部 -->
+    <view class="page-header">
+      <view class="header-bg"></view>
+      <view class="header-content">
+        <text class="header-icon">🌸</text>
+        <view class="header-text">
+          <text class="header-title">周期日历</text>
+          <text class="header-sub">{{ currentMonth }}</text>
+        </view>
+      </view>
     </view>
 
+    <!-- 概览卡片 -->
     <view class="overview-card">
       <view class="overview-item">
-        <view class="overview-num">{{ avgCycle }}</view>
+        <view class="overview-num">{{ avgCycle || '--' }}</view>
         <view class="overview-label">平均周期(天)</view>
       </view>
-      <view class="overview-divider" />
+      <view class="overview-divider"></view>
       <view class="overview-item">
-        <view class="overview-num">{{ avgDuration }}</view>
+        <view class="overview-num">{{ avgDuration || '--' }}</view>
         <view class="overview-label">平均经期(天)</view>
       </view>
-      <view class="overview-divider" />
+      <view class="overview-divider"></view>
       <view class="overview-item">
-        <view class="overview-num">{{ cycleDay }}</view>
+        <view class="overview-num primary">{{ cycleDay || '--' }}</view>
         <view class="overview-label">当前周期(天)</view>
       </view>
     </view>
 
-    <view class="calendar">
+    <!-- 日历 -->
+    <view class="calendar-card">
       <view class="cal-header">
-        <view class="cal-nav" @click="prevMonth">&lt;</view>
-        <view class="cal-month">{{ currentMonth }}</view>
-        <view class="cal-nav" @click="nextMonth">&gt;</view>
+        <view class="cal-nav" @click="prevMonth">
+          <text class="nav-arrow">&lt;</text>
+        </view>
+        <text class="cal-month">{{ currentMonth }}</text>
+        <view class="cal-nav" @click="nextMonth">
+          <text class="nav-arrow">&gt;</text>
+        </view>
       </view>
+
       <view class="cal-weekdays">
         <view v-for="d in weekdays" :key="d" class="wd">{{ d }}</view>
       </view>
+
       <view class="cal-days">
         <view
-          v-for="day in calendarDays" :key="day.date"
+          v-for="day in calendarDays"
+          :key="day.date"
           class="cal-day"
           :class="{
             'is-period': day.isPeriod,
-            'is-predicted': day.isPredicted,
-            'is-ovulation': day.isOvulation,
+            'is-predicted': day.isPredicted && !day.isPeriod,
+            'is-ovulation': day.isOvulation && !day.isPeriod,
             'is-today': day.isToday,
             'empty': !day.day
           }"
           @click="onDayClick(day)"
         >
-          <text>{{ day.day || '' }}</text>
-          <view v-if="day.isPeriod" class="day-dot period" />
-          <view v-if="day.isPredicted" class="day-dot predicted" />
-          <view v-if="day.isOvulation" class="day-dot ovulation" />
+          <text class="day-num">{{ day.day || '' }}</text>
+          <view v-if="day.isPeriod" class="day-indicator period"></view>
+          <view v-else-if="day.isOvulation" class="day-indicator ovulation"></view>
+          <view v-else-if="day.isPredicted" class="day-indicator predicted"></view>
+        </view>
+      </view>
+
+      <!-- 图例 -->
+      <view class="legend">
+        <view class="legend-item">
+          <view class="legend-dot period"></view>
+          <text class="legend-text">经期</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-dot predicted"></view>
+          <text class="legend-text">预测</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-dot ovulation"></view>
+          <text class="legend-text">排卵</text>
         </view>
       </view>
     </view>
 
-    <view class="legend">
-      <view class="legend-item"><view class="legend-dot period" />经期</view>
-      <view class="legend-item"><view class="legend-dot predicted" />预测</view>
-      <view class="legend-item"><view class="legend-dot ovulation" />排卵</view>
-    </view>
+    <!-- 记录列表 -->
+    <view class="records-card">
+      <view class="section-header">
+        <text class="section-title">📝 经期记录</text>
+        <text class="section-count">共 {{ records.length }} 条</text>
+      </view>
 
-    <view class="records-section">
-      <view class="section-title">📝 经期记录</view>
-      <view v-for="r in records" :key="r.id" class="record-item">
-        <view class="record-left">
-          <view class="record-date">{{ r.startDate }}</view>
-          <view class="record-duration">持续 {{ r.duration || '-' }} 天</view>
-        </view>
-        <view class="record-right">
-          <view class="record-amount">{{ r.flowLevel ? ['轻', '中', '重'][r.flowLevel - 1] || '中' : '-' }}</view>
+      <view v-if="records.length === 0" class="empty-state">
+        <text class="empty-icon">📅</text>
+        <text class="empty-text">暂无经期记录，点击日期开始记录~</text>
+      </view>
+
+      <view v-else class="record-list">
+        <view v-for="r in records" :key="r.id" class="record-item">
+          <view class="record-left">
+            <view class="record-date">{{ r.startDate }}</view>
+            <view class="record-duration">
+              <text>持续</text>
+              <text class="duration-num">{{ r.duration || '-' }}</text>
+              <text>天</text>
+            </view>
+          </view>
+          <view class="record-right">
+            <view class="flow-badge" :class="'flow-' + (r.flowLevel || 3)">
+              {{ ['', '轻', '中', '重'][r.flowLevel || 3] || '中' }}
+            </view>
+          </view>
         </view>
       </view>
-      <view v-if="!records.length" class="empty-tip">暂无经期记录</view>
     </view>
+
+    <view class="bottom-placeholder"></view>
   </view>
 </template>
 
@@ -149,7 +194,6 @@ function onDayClick(day) {
   })
 }
 
-// 生成日期范围（start 到 end 之间的所有日期字符串）
 function dateRange(startStr, endStr) {
   const dates = []
   if (!startStr || !endStr) return dates
@@ -166,12 +210,10 @@ async function loadData() {
   predictedDaySet.clear()
   ovulationDaySet.clear()
 
-  // 加载经期记录
   try {
     const res = await period.list()
     if (res.data) {
       records.value = res.data
-      // 标记经期日
       for (const r of res.data) {
         if (r.startDate) {
           const endDate = r.endDate || (r.duration ? new Date(new Date(r.startDate).getTime() + (r.duration - 1) * 86400000).toISOString().slice(0, 10) : r.startDate)
@@ -183,26 +225,21 @@ async function loadData() {
     }
   } catch {}
 
-  // 加载预测数据
   try {
     const predRes = await period.prediction()
     if (predRes.data) {
       const pred = predRes.data
       avgCycle.value = pred.cycleLength || 0
       avgDuration.value = pred.periodLength || 0
-
-      // 标记预测经期日
       if (pred.predictedNextDate) {
         const endDate = new Date(new Date(pred.predictedNextDate).getTime() + ((pred.periodLength || 5) - 1) * 86400000).toISOString().slice(0, 10)
         for (const d of dateRange(pred.predictedNextDate, endDate)) {
           predictedDaySet.add(d)
         }
       }
-      // 标记排卵日
       if (pred.ovulationDate) {
         ovulationDaySet.add(pred.ovulationDate)
       }
-      // 计算当前周期天数
       if (pred.predictedStartDate) {
         const start = new Date(pred.predictedStartDate)
         const today = new Date()
@@ -220,43 +257,350 @@ updateMonthLabel()
 onMounted(() => loadData())
 </script>
 
-<style scoped>
-.period-page { min-height: 100vh; background: #faf8fb; padding-bottom: 32rpx }
-.header { background: linear-gradient(135deg, #E91E63, #F48FB1); padding: 32rpx; color: #fff }
-.header-title { font-size: 36rpx; font-weight: bold }
-.header-sub { font-size: 26rpx; opacity: 0.9; margin-top: 8rpx }
-.overview-card { display: flex; background: #fff; margin: -40rpx 32rpx 24rpx; border-radius: 20rpx; padding: 32rpx 0; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.08) }
-.overview-item { flex: 1; text-align: center }
-.overview-num { font-size: 40rpx; font-weight: bold; color: #E91E63 }
-.overview-label { font-size: 22rpx; color: #999; margin-top: 4rpx }
-.overview-divider { width: 1rpx; background: #f0f0f0 }
-.calendar { background: #fff; margin: 0 32rpx 24rpx; border-radius: 20rpx; padding: 24rpx }
-.cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24rpx }
-.cal-nav { padding: 8rpx 24rpx; font-size: 32rpx; color: #E91E63 }
-.cal-month { font-size: 30rpx; font-weight: 600 }
-.cal-weekdays { display: flex }
-.wd { flex: 1; text-align: center; font-size: 24rpx; color: #999; padding: 8rpx 0 }
-.cal-days { display: flex; flex-wrap: wrap }
-.cal-day { width: 14.28%; aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 28rpx; color: #333; position: relative }
-.cal-day.is-today { background: #fce4ec; border-radius: 50%; font-weight: bold; color: #E91E63 }
-.cal-day.is-period { background: #F48FB1; border-radius: 50%; color: #fff }
-.cal-day.is-predicted { background: #f8bbd0; border-radius: 50%; color: #fff }
-.cal-day.is-ovulation { background: #9C27B0; border-radius: 50%; color: #fff }
-.day-dot { width: 8rpx; height: 8rpx; border-radius: 50%; position: absolute; bottom: 8rpx }
-.day-dot.period { background: #E91E63 }
-.day-dot.predicted { background: #F48FB1 }
-.day-dot.ovulation { background: #9C27B0 }
-.legend { display: flex; justify-content: center; gap: 32rpx; margin: 0 32rpx 24rpx }
-.legend-item { display: flex; align-items: center; gap: 8rpx; font-size: 24rpx; color: #666 }
-.legend-dot { width: 16rpx; height: 16rpx; border-radius: 50% }
-.legend-dot.period { background: #F48FB1 }
-.legend-dot.predicted { background: #f8bbd0 }
-.legend-dot.ovulation { background: #9C27B0 }
-.records-section { background: #fff; margin: 0 32rpx; border-radius: 20rpx; padding: 24rpx }
-.section-title { font-size: 30rpx; font-weight: 600; margin-bottom: 16rpx }
-.record-item { display: flex; justify-content: space-between; padding: 16rpx 0; border-bottom: 1rpx solid #f5f5f5 }
-.record-date { font-size: 28rpx; font-weight: 500; color: #333 }
-.record-duration { font-size: 24rpx; color: #999 }
-.record-amount { font-size: 28rpx; color: #E91E63; font-weight: 500 }
-.empty-tip { text-align: center; color: #999; font-size: 26rpx; padding: 24rpx }
+<style lang="scss" scoped>
+@import "../../uni.scss";
+
+.period-page {
+  min-height: 100vh;
+  background: $she-bg;
+}
+
+// 头部
+.page-header {
+  position: relative;
+}
+
+.header-bg {
+  height: 260rpx;
+  background: $she-gradient-primary;
+  border-radius: 0 0 48rpx 48rpx;
+}
+
+.header-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 80rpx 32rpx 0;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.header-icon {
+  font-size: 64rpx;
+}
+
+.header-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-title {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #fff;
+}
+
+.header-sub {
+  font-size: 26rpx;
+  color: rgba(255,255,255,0.85);
+  margin-top: 4rpx;
+}
+
+// 概览卡片
+.overview-card {
+  display: flex;
+  align-items: center;
+  background: $she-white;
+  margin: -80rpx 32rpx 24rpx;
+  border-radius: 24rpx;
+  padding: 32rpx 16rpx;
+  box-shadow: $she-shadow-md;
+  position: relative;
+  z-index: 1;
+}
+
+.overview-item {
+  flex: 1;
+  text-align: center;
+}
+
+.overview-num {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: $she-title;
+
+  &.primary { color: $she-primary; }
+}
+
+.overview-label {
+  font-size: 22rpx;
+  color: $she-muted;
+  margin-top: 4rpx;
+}
+
+.overview-divider {
+  width: 1rpx;
+  height: 60rpx;
+  background: $she-border;
+}
+
+// 日历卡片
+.calendar-card {
+  background: $she-white;
+  margin: 0 32rpx 24rpx;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  box-shadow: $she-shadow-md;
+}
+
+.cal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.cal-nav {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $she-bg;
+  border-radius: 32rpx;
+  &:active { background: rgba($she-primary, 0.1); }
+}
+
+.nav-arrow {
+  font-size: 32rpx;
+  color: $she-primary;
+  font-weight: 600;
+}
+
+.cal-month {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: $she-title;
+}
+
+.cal-weekdays {
+  display: flex;
+  margin-bottom: 16rpx;
+}
+
+.wd {
+  flex: 1;
+  text-align: center;
+  font-size: 24rpx;
+  color: $she-muted;
+  padding: 8rpx 0;
+}
+
+.cal-days {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.cal-day {
+  width: 14.28%;
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+
+  &.empty { pointer-events: none; }
+
+  &.is-today {
+    .day-num {
+      background: rgba($she-primary, 0.1);
+      color: $she-primary;
+      border-radius: 50%;
+      font-weight: 700;
+    }
+  }
+
+  &.is-period {
+    .day-num {
+      background: $she-period;
+      color: #fff;
+      border-radius: 50%;
+    }
+  }
+
+  &.is-predicted {
+    .day-num {
+      background: #f8bbd0;
+      color: #fff;
+      border-radius: 50%;
+    }
+  }
+
+  &.is-ovulation {
+    .day-num {
+      background: $she-trying;
+      color: #fff;
+      border-radius: 50%;
+    }
+  }
+}
+
+.day-num {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  color: $she-text;
+}
+
+.day-indicator {
+  position: absolute;
+  bottom: 8rpx;
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+
+  &.period { background: $she-period; }
+  &.predicted { background: #f8bbd0; }
+  &.ovulation { background: $she-trying; }
+}
+
+// 图例
+.legend {
+  display: flex;
+  justify-content: center;
+  gap: 40rpx;
+  margin-top: 24rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid $she-border;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.legend-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  &.period { background: $she-period; }
+  &.predicted { background: #f8bbd0; }
+  &.ovulation { background: $she-trying; }
+}
+
+.legend-text {
+  font-size: 24rpx;
+  color: $she-sub;
+}
+
+// 记录卡片
+.records-card {
+  background: $she-white;
+  margin: 0 32rpx 24rpx;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  box-shadow: $she-shadow-md;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: $she-title;
+}
+
+.section-count {
+  font-size: 24rpx;
+  color: $she-muted;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48rpx 0;
+  gap: 16rpx;
+}
+
+.empty-icon {
+  font-size: 64rpx;
+  opacity: 0.5;
+}
+
+.empty-text {
+  font-size: 26rpx;
+  color: $she-muted;
+  text-align: center;
+}
+
+.record-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.record-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx;
+  background: $she-bg;
+  border-radius: 16rpx;
+  transition: all 0.2s ease;
+
+  &:active {
+    background: rgba($she-primary, 0.06);
+  }
+}
+
+.record-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.record-date {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: $she-text;
+}
+
+.record-duration {
+  font-size: 24rpx;
+  color: $she-muted;
+}
+
+.duration-num {
+  color: $she-primary;
+  font-weight: 600;
+  margin: 0 4rpx;
+}
+
+.flow-badge {
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+
+  &.flow-1 { background: #E8F5E9; color: #4CAF50; }
+  &.flow-2 { background: #FFF3E0; color: #FF9800; }
+  &.flow-3, &.flow-4 { background: #FCE4EC; color: $she-primary; }
+}
+
+.bottom-placeholder {
+  height: 48rpx;
+}
 </style>

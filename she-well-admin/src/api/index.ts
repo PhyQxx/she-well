@@ -51,6 +51,7 @@ export const rejectExpert = (id: number, reason: string) => api.put(`/expert/${i
 
 // ===== Question =====
 export const getQuestionList = (params?: any) => api.get('/expert/questions', { params })
+export const replyQuestion = (id: number, content: string) => api.put(`/expert/question/${id}/reply`, { content })
 export const deleteQuestion = (id: number) => api.delete(`/expert/question/${id}`)
 
 // ===== Activity =====
@@ -61,7 +62,9 @@ export const deleteActivity = (id: number) => api.delete(`/activity/${id}`)
 
 // ===== Community =====
 export const getPostList = (params?: any) => api.get('/community/posts', { params })
+export const approvePost = (id: number) => api.put(`/community/post/${id}/approve`)
 export const deletePost = (id: number) => api.delete(`/community/post/${id}`)
+export const banPost = (id: number) => api.put(`/community/post/${id}/ban`)
 export const getCommentList = (params?: any) => api.get('/community/comments', { params })
 export const deleteComment = (id: number) => api.delete(`/community/comment/${id}`)
 

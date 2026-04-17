@@ -1,0 +1,243 @@
+// ============================================
+// SheWell Common - 全局公共样式
+// ============================================
+@import './variables.scss';
+@import './mixins.scss';
+
+// --------------------------------------------
+// Reset & Base
+// --------------------------------------------
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  font-family: $she-font-family;
+  font-size: $she-font-size-md;
+  line-height: $she-line-height-normal;
+  color: $she-text;
+  background: $she-bg;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  height: 100vh;
+  overflow: hidden;
+}
+
+// --------------------------------------------
+// Typography
+// --------------------------------------------
+.text {
+  &-title { color: $she-title; font-size: $she-font-size-xl; font-weight: $she-font-weight-semibold; }
+  &-primary { color: $she-primary; }
+  &-sub { color: $she-sub; }
+  &-muted { color: $she-muted; }
+  &-success { color: $she-success; }
+  &-warning { color: $she-warning; }
+  &-danger { color: $she-danger; }
+
+  &-xs { font-size: $she-font-size-xs; }
+  &-sm { font-size: $she-font-size-sm; }
+  &-md { font-size: $she-font-size-md; }
+  &-lg { font-size: $she-font-size-lg; }
+  &-xl { font-size: $she-font-size-xl; }
+  &-2xl { font-size: $she-font-size-2xl; }
+  &-3xl { font-size: $she-font-size-3xl; }
+
+  &-bold { font-weight: $she-font-weight-bold; }
+  &-medium { font-weight: $she-font-weight-medium; }
+}
+
+// --------------------------------------------
+// Layout
+// --------------------------------------------
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.items-end { align-items: flex-end; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.justify-end { justify-content: flex-end; }
+.flex-1 { flex: 1; }
+.flex-wrap { flex-wrap: wrap; }
+.gap-2 { gap: $she-space-2; }
+.gap-3 { gap: $she-space-3; }
+.gap-4 { gap: $she-space-4; }
+.gap-6 { gap: $she-space-6; }
+
+// --------------------------------------------
+// Spacing
+// --------------------------------------------
+.m-0 { margin: 0; }
+.mt-2 { margin-top: $she-space-2; }
+.mt-4 { margin-top: $she-space-4; }
+.mt-6 { margin-top: $she-space-6; }
+.mb-2 { margin-bottom: $she-space-2; }
+.mb-4 { margin-bottom: $she-space-4; }
+.mb-6 { margin-bottom: $she-space-6; }
+.p-0 { padding: 0; }
+.p-4 { padding: $she-space-4; }
+.p-6 { padding: $she-space-6; }
+
+// --------------------------------------------
+// Cards
+// --------------------------------------------
+.card {
+  @include soft-card;
+  transition: all $she-transition-normal;
+
+  &:hover {
+    box-shadow: $she-shadow-lg;
+  }
+
+  &-header {
+    @include flex-between;
+    padding-bottom: $she-space-4;
+    margin-bottom: $she-space-4;
+    border-bottom: 1px solid $she-border;
+
+    .card-title {
+      font-size: $she-font-size-lg;
+      font-weight: $she-font-weight-semibold;
+      color: $she-title;
+    }
+  }
+
+  &-body {
+    @include flex-column;
+    gap: $she-space-3;
+  }
+}
+
+// --------------------------------------------
+// Stat Card (统计卡片)
+// --------------------------------------------
+.stat-card {
+  @include gradient-card;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    transform: rotate(-30deg);
+  }
+
+  .stat-num {
+    font-size: $she-font-size-3xl;
+    font-weight: $she-font-weight-bold;
+    position: relative;
+    z-index: 1;
+  }
+
+  .stat-label {
+    font-size: $she-font-size-sm;
+    opacity: 0.9;
+    margin-top: $she-space-1;
+    position: relative;
+    z-index: 1;
+  }
+
+  // 不同状态的 stat card
+  &.period { background: linear-gradient(135deg, $she-period, lighten($she-period, 15%)); }
+  &.trying { background: linear-gradient(135deg, $she-trying, lighten($she-trying, 15%)); }
+  &.pregnant { background: linear-gradient(135deg, $she-pregnant, lighten($she-pregnant, 15%)); }
+  &.nursing { background: linear-gradient(135deg, $she-nursing, lighten($she-nursing, 15%)); }
+}
+
+// --------------------------------------------
+// List Items
+// --------------------------------------------
+.list-item {
+  @include flex-between;
+  padding: $she-space-4 0;
+  border-bottom: 1px solid $she-border;
+  transition: all $she-transition-fast;
+
+  &:last-child { border-bottom: none; }
+
+  &:hover {
+    background: rgba($she-primary, 0.02);
+    padding-left: $she-space-2;
+  }
+
+  &-text {
+    @include flex-column;
+    gap: $she-space-1;
+  }
+
+  &-title {
+    @include text-ellipsis(1);
+    font-size: $she-font-size-md;
+    color: $she-text;
+  }
+
+  &-meta {
+    font-size: $she-font-size-xs;
+    color: $she-muted;
+  }
+}
+
+// --------------------------------------------
+// Tags
+// --------------------------------------------
+.tag {
+  @include status-tag;
+  &-primary { background: $she-primary-bg; color: $she-primary; }
+  &-success { background: rgba($she-success, 0.1); color: $she-success; }
+  &-warning { background: rgba($she-warning, 0.1); color: $she-warning; }
+  &-danger { background: rgba($she-danger, 0.1); color: $she-danger; }
+  &-period { background: rgba($she-period, 0.1); color: $she-period; }
+  &-trying { background: rgba($she-trying, 0.1); color: $she-trying; }
+  &-pregnant { background: rgba($she-pregnant, 0.1); color: $she-pregnant; }
+  &-nursing { background: rgba($she-nursing, 0.1); color: $she-nursing; }
+}
+
+// --------------------------------------------
+// Empty State
+// --------------------------------------------
+.empty-state {
+  @include flex-center;
+  flex-direction: column;
+  padding: $she-space-12;
+  color: $she-muted;
+  text-align: center;
+
+  .empty-icon {
+    font-size: 64px;
+    margin-bottom: $she-space-4;
+    opacity: 0.5;
+  }
+
+  .empty-text {
+    font-size: $she-font-size-sm;
+  }
+}
+
+// --------------------------------------------
+// Page Container
+// --------------------------------------------
+.page-container {
+  @include page-container;
+  @include custom-scrollbar;
+  overflow-y: auto;
+}
+
+// --------------------------------------------
+// Scrollbar
+// --------------------------------------------
+.custom-scrollbar {
+  @include custom-scrollbar;
+}

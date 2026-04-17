@@ -53,29 +53,36 @@ public class AuthController {
         User user = userService.getOne(new LambdaQueryWrapper<User>()
                 .eq(User::getPhone, dto.getPhone()));
 
-        if (user == null) {
-            return Result.fail("用户不存在，请先注册");
-        }
-
-        if (user.getStatus() != null && user.getStatus() == 0) {
-            return Result.fail("账号已被禁用");
-        }
-
-        // 验证码登录
+        // 验证码验证（新用户也需要）
         if (dto.getCode() != null && !dto.getCode().isEmpty()) {
             String cachedCode = redisTemplate.opsForValue().get(SMS_CODE_PREFIX + dto.getPhone());
             if (cachedCode == null || !cachedCode.equals(dto.getCode())) {
                 return Result.fail("验证码错误或已过期");
             }
             redisTemplate.delete(SMS_CODE_PREFIX + dto.getPhone());
-        }
-        // 密码登录
-        else if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
+        } else if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
+            // 密码登录需要已有用户
+            if (user == null) return Result.fail("用户不存在");
             if (user.getPassword() == null || !BCrypt.checkpw(dto.getPassword(), user.getPassword())) {
                 return Result.fail("密码错误");
             }
         } else {
             return Result.fail("请输入验证码或密码");
+        }
+
+        // 自动注册：验证码登录时用户不存在则自动创建
+        if (user == null) {
+            user = new User();
+            user.setPhone(dto.getPhone());
+            user.setPassword(BCrypt.hashpw("123456", BCrypt.gensalt()));
+            user.setNickname("用户" + dto.getPhone().substring(7));
+            user.setStatus(1);
+            user.setCurrentMode("period");
+            userService.save(user);
+        } else {
+            if (user.getStatus() != null && user.getStatus() == 0) {
+                return Result.fail("账号已被禁用");
+            }
         }
 
         String token = JwtUtil.generateToken(user.getId());

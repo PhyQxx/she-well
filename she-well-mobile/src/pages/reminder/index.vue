@@ -1,12 +1,25 @@
 <template>
   <view class="reminder-page">
-    <view class="header">
-      <view class="header-title">⏰ 健康提醒</view>
-      <view class="header-add" @click="showAddDialog = true">+ 添加</view>
+    <!-- 头部 -->
+    <view class="page-header">
+      <view class="header-bg"></view>
+      <view class="header-content">
+        <view class="header-left">
+          <text class="header-icon">⏰</text>
+          <view class="header-text">
+            <text class="header-title">健康提醒</text>
+            <text class="header-sub">养成健康好习惯</text>
+          </view>
+        </view>
+        <view class="header-add" @click="showAddDialog = true">
+          <text class="add-icon">+</text>
+          <text class="add-text">添加</text>
+        </view>
+      </view>
     </view>
 
     <!-- 统计 -->
-    <view class="stats-row">
+    <view class="stats-card">
       <view class="stat-item">
         <view class="stat-num">{{ reminderList.filter(r => r.enabled).length }}</view>
         <view class="stat-label">已开启</view>
@@ -30,10 +43,10 @@
 
     <!-- 提醒列表 -->
     <view class="reminder-list">
-      <view v-if="!reminderList.length" class="empty-state">
-        <view class="empty-icon">⏰</view>
-        <view class="empty-text">暂无提醒</view>
-        <view class="empty-sub">点击上方「添加」设置健康提醒</view>
+      <view v-if="!reminderList.length" class="she-empty">
+        <text class="empty-icon">⏰</text>
+        <text class="empty-text">暂无提醒</text>
+        <text class="empty-sub">点击上方「添加」设置健康提醒</text>
       </view>
 
       <view v-for="r in reminderList" :key="r.id" class="reminder-card" :class="{ disabled: !r.enabled }">
@@ -61,26 +74,28 @@
       </view>
     </view>
 
+    <!-- 底部占位 -->
+    <view class="bottom-placeholder"></view>
+
     <!-- 添加弹窗 -->
     <view class="dialog-overlay" v-if="showAddDialog" @click="showAddDialog = false">
-      <view class="dialog-box" @click.stop>
-        <view class="dialog-title">添加提醒</view>
-
-        <!-- 提醒类型 -->
-        <view class="type-grid">
-          <view v-for="t in typeOptions" :key="t.type" class="type-item" :class="{ selected: addForm.type === t.type }" @click="addForm.type = t.type; addForm.title = t.name">
-            <view class="type-icon">{{ t.icon }}</view>
-            <view class="type-name">{{ t.name }}</view>
-          </view>
+      <view class="dialog-sheet" @click.stop>
+        <view class="sheet-header">
+          <text class="sheet-cancel" @click="showAddDialog = false">取消</text>
+          <text class="sheet-title">添加提醒</text>
+          <text class="sheet-confirm" @click="submitReminder">保存</text>
         </view>
-
-        <input class="dialog-input" v-model="addForm.title" placeholder="提醒标题（选填）" />
-        <input class="dialog-input" v-model="addForm.remindTime" type="time" placeholder="提醒时间" />
-        <input class="dialog-input" v-model="addForm.content" placeholder="备注内容（选填）" />
-
-        <view class="dialog-btns">
-          <view class="dialog-cancel" @click="showAddDialog = false">取消</view>
-          <view class="dialog-confirm" @click="submitReminder">保存</view>
+        <view class="sheet-body">
+          <!-- 提醒类型 -->
+          <view class="type-grid">
+            <view v-for="t in typeOptions" :key="t.type" class="type-item" :class="{ selected: addForm.type === t.type }" @click="addForm.type = t.type; addForm.title = t.name">
+              <view class="type-icon">{{ t.icon }}</view>
+              <view class="type-name">{{ t.name }}</view>
+            </view>
+          </view>
+          <input class="sheet-input" v-model="addForm.title" placeholder="提醒标题（选填）" />
+          <input class="sheet-input" v-model="addForm.remindTime" type="time" placeholder="提醒时间" />
+          <input class="sheet-input" v-model="addForm.content" placeholder="备注内容（选填）" />
         </view>
       </view>
     </view>
@@ -147,7 +162,6 @@ async function toggleReminder(r) {
     r.enabled = newEnabled
   } catch (e) {
     uni.showToast({ title: '切换失败', icon: 'none' })
-    // revert
     r.enabled = !newEnabled
   }
 }
@@ -221,55 +235,220 @@ async function submitReminder() {
 onMounted(loadData)
 </script>
 
-<style scoped>
-.reminder-page { min-height: 100vh; background: #faf8fb; padding-bottom: 32rpx }
-.header { background: linear-gradient(135deg, #FF9800, #FFB74D); padding: 32rpx; color: #fff; display: flex; justify-content: space-between; align-items: center }
-.header-title { font-size: 36rpx; font-weight: bold }
-.header-add { font-size: 28rpx; background: rgba(255,255,255,0.25); padding: 8rpx 20rpx; border-radius: 20rpx }
-.stats-row { display: flex; background: #fff; margin: 24rpx 32rpx; border-radius: 16rpx; padding: 24rpx 0; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06) }
-.stat-item { flex: 1; text-align: center }
-.stat-num { font-size: 36rpx; font-weight: bold; color: #FF9800 }
-.stat-label { font-size: 22rpx; color: #999; margin-top: 4rpx }
-.stat-divider { width: 1rpx; background: #f0f0f0 }
-.reminder-list { margin: 0 32rpx }
-.reminder-card { background: #fff; border-radius: 16rpx; padding: 24rpx; margin-bottom: 16rpx; display: flex; align-items: center; gap: 16rpx; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06); transition: opacity 0.2s }
-.reminder-card.disabled { opacity: 0.5 }
-.reminder-icon { font-size: 48rpx }
-.reminder-info { flex: 1 }
-.reminder-title { font-size: 30rpx; font-weight: 600; color: #333 }
-.reminder-time { font-size: 26rpx; color: #FF9800; margin-top: 4rpx }
-.reminder-type-tag { display: inline-block; font-size: 22rpx; padding: 2rpx 10rpx; border-radius: 8rpx; margin-top: 4rpx }
-.type-water { background: #e3f2fd; color: #2196F3 }
-.type-exercise { background: #e8f5e9; color: #4CAF50 }
-.type-sleep { background: #f3e5f5; color: #9C27B0 }
-.type-medicine { background: #fff3e0; color: #FF9800 }
-.type-period { background: #fce4ec; color: #E91E63 }
-.type-ovulation { background: #f0f9eb; color: #4CAF50 }
-.type-custom { background: #faf8fb; color: #666 }
-.reminder-actions { display: flex; flex-direction: column; align-items: center; gap: 8rpx }
-.delete-btn { font-size: 28rpx; padding: 4rpx }
-.empty-state { text-align: center; padding: 80rpx 0 }
-.empty-icon { font-size: 80rpx; margin-bottom: 16rpx }
-.empty-text { font-size: 32rpx; font-weight: 600; color: #999 }
-.empty-sub { font-size: 26rpx; color: #ccc; margin-top: 8rpx }
-.quick-add { margin: 24rpx 32rpx; background: #fff; border-radius: 16rpx; padding: 24rpx }
-.quick-title { font-size: 28rpx; font-weight: 600; color: #333; margin-bottom: 16rpx }
-.quick-list { display: flex; gap: 16rpx }
-.quick-item { flex: 1; background: #faf8fb; border-radius: 12rpx; padding: 20rpx 0; text-align: center; border: 2rpx solid transparent }
-.quick-item:active { border-color: #FF9800 }
-.quick-icon { font-size: 36rpx }
-.quick-name { font-size: 24rpx; color: #666; margin-top: 4rpx }
-/* dialog */
-.dialog-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; display: flex; align-items: center; justify-content: center }
-.dialog-box { background: #fff; border-radius: 20rpx; padding: 40rpx; width: 600rpx; max-height: 80vh; overflow-y: auto }
-.dialog-title { font-size: 32rpx; font-weight: bold; text-align: center; margin-bottom: 24rpx }
-.type-grid { display: flex; flex-wrap: wrap; gap: 12rpx; margin-bottom: 16rpx }
-.type-item { width: calc(33.33% - 8rpx); background: #faf8fb; border-radius: 12rpx; padding: 16rpx 0; text-align: center; border: 2rpx solid transparent }
-.type-item.selected { border-color: #FF9800; background: #fff3e0 }
-.type-icon { font-size: 36rpx }
-.type-name { font-size: 22rpx; color: #666; margin-top: 4rpx }
-.dialog-input { border: 1rpx solid #eee; border-radius: 10rpx; padding: 16rpx; font-size: 28rpx; margin-bottom: 16rpx; width: 100%; box-sizing: border-box }
-.dialog-btns { display: flex; gap: 20rpx; margin-top: 8rpx }
-.dialog-cancel { flex: 1; text-align: center; padding: 16rpx; background: #f5f5f5; border-radius: 10rpx; color: #999; font-size: 28rpx }
-.dialog-confirm { flex: 1; text-align: center; padding: 16rpx; background: linear-gradient(135deg, #FF9800, #FFB74D); border-radius: 10rpx; color: #fff; font-size: 28rpx }
+<style lang="scss" scoped>
+@import "../../uni.scss";
+
+.reminder-page {
+  min-height: 100vh;
+  background: $she-bg;
+  padding-bottom: 48rpx;
+}
+
+// 头部
+.page-header { position: relative; }
+
+.header-bg {
+  height: 220rpx;
+  background: $she-gradient-nursing;
+  border-radius: 0 0 48rpx 48rpx;
+}
+
+.header-content {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  padding: 80rpx 32rpx 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.header-icon { font-size: 48rpx; }
+
+.header-text { display: flex; flex-direction: column; }
+
+.header-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #fff;
+}
+
+.header-sub {
+  font-size: 24rpx;
+  color: rgba(255,255,255,0.8);
+  margin-top: 4rpx;
+}
+
+.header-add {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  background: rgba(255,255,255,0.25);
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+}
+
+.add-icon { font-size: 28rpx; color: #fff; }
+.add-text { font-size: 26rpx; color: #fff; }
+
+// 统计
+.stats-card {
+  display: flex;
+  background: $she-white;
+  margin: -60rpx 32rpx 24rpx;
+  border-radius: 20rpx;
+  padding: 24rpx 0;
+  box-shadow: $she-shadow-md;
+  position: relative;
+  z-index: 1;
+}
+
+.stat-item { flex: 1; text-align: center; }
+.stat-num { font-size: 40rpx; font-weight: 700; color: $she-nursing; }
+.stat-label { font-size: 22rpx; color: $she-muted; margin-top: 4rpx; }
+.stat-divider { width: 1rpx; background: $she-border; margin-top: 8rpx; }
+
+// 提醒列表
+.reminder-list { margin: 0 32rpx; }
+
+.reminder-card {
+  background: $she-white;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  box-shadow: $she-shadow-sm;
+  transition: opacity 0.2s;
+
+  &.disabled { opacity: 0.5; }
+  &:active { transform: scale(0.99); }
+}
+
+.reminder-icon { font-size: 48rpx; }
+.reminder-info { flex: 1; }
+.reminder-title { font-size: 30rpx; font-weight: 600; color: $she-title; }
+.reminder-time { font-size: 26rpx; color: $she-nursing; margin-top: 4rpx; }
+
+.reminder-type-tag {
+  display: inline-block;
+  font-size: 22rpx;
+  padding: 2rpx 10rpx;
+  border-radius: 8rpx;
+  margin-top: 4rpx;
+}
+
+.type-water { background: rgba(#2196F3, 0.1); color: #2196F3; }
+.type-exercise { background: rgba($she-pregnant, 0.1); color: $she-pregnant; }
+.type-sleep { background: rgba($she-trying, 0.1); color: $she-trying; }
+.type-medicine { background: rgba($she-nursing, 0.1); color: $she-nursing; }
+.type-period { background: rgba($she-primary, 0.1); color: $she-primary; }
+.type-ovulation { background: rgba($she-pregnant, 0.1); color: $she-pregnant; }
+.type-custom { background: $she-bg; color: $she-sub; }
+
+.reminder-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.delete-btn { font-size: 28rpx; padding: 4rpx; }
+
+// 快捷添加
+.quick-add {
+  margin: 24rpx 32rpx 0;
+  background: $she-white;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  box-shadow: $she-shadow-sm;
+}
+
+.quick-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: $she-title;
+  margin-bottom: 16rpx;
+}
+
+.quick-list { display: flex; gap: 16rpx; }
+
+.quick-item {
+  flex: 1;
+  background: $she-bg;
+  border-radius: 16rpx;
+  padding: 20rpx 0;
+  text-align: center;
+  border: 2rpx solid transparent;
+  transition: all 0.2s;
+
+  &:active {
+    border-color: $she-nursing;
+    background: rgba($she-nursing, 0.06);
+  }
+}
+
+.quick-icon { font-size: 36rpx; }
+.quick-name { font-size: 24rpx; color: $she-sub; margin-top: 4rpx; }
+
+.bottom-placeholder { height: 48rpx; }
+
+// 弹窗
+.dialog-sheet { background: $she-white; border-radius: 32rpx 32rpx 0 0; padding-bottom: env(safe-area-inset-bottom); }
+
+.sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28rpx 32rpx;
+  border-bottom: 1rpx solid $she-border;
+}
+
+.sheet-cancel { font-size: 30rpx; color: $she-muted; min-width: 100rpx; }
+.sheet-title { font-size: 32rpx; font-weight: 600; color: $she-text; }
+.sheet-confirm { font-size: 30rpx; color: $she-nursing; min-width: 100rpx; text-align: right; }
+
+.sheet-body { padding: 24rpx; }
+
+.type-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+.type-item {
+  width: calc(33.33% - 8rpx);
+  background: $she-bg;
+  border-radius: 16rpx;
+  padding: 20rpx 0;
+  text-align: center;
+  border: 2rpx solid transparent;
+  transition: all 0.2s;
+
+  &.selected {
+    border-color: $she-nursing;
+    background: rgba($she-nursing, 0.08);
+  }
+}
+
+.type-icon { font-size: 36rpx; }
+.type-name { font-size: 22rpx; color: $she-sub; margin-top: 4rpx; }
+
+.sheet-input {
+  border: 1rpx solid $she-border;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+  color: $she-text;
+  margin-bottom: 16rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
 </style>

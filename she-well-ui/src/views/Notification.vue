@@ -110,6 +110,7 @@ async function loadData() {
     }))
   } catch (err) {
     notifications.value = []
+    ElMessage.error('加载通知失败')
   } finally {
     loading.value = false
   }

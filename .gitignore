@@ -51,3 +51,4 @@ Thumbs.db
 # Build artifacts (avoid globbing issues)
 she-well-admin/dist/
 "she-well-backend/D:\\ office\\maven\\repository/"
+.gstack/

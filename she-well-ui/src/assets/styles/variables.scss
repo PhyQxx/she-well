@@ -1,0 +1,109 @@
+// ============================================
+// SheWell Design System - Design Tokens
+// ============================================
+
+// --------------------------------------------
+// Brand Colors (品牌色系)
+// --------------------------------------------
+$she-primary:       #E91E63 !default;  // 主色 - 玫红
+$she-primary-light: #F48FB1 !default;  // 主色浅
+$she-primary-dark:  #C2185B !default;  // 主色深
+$she-primary-bg:   #FCE4EC !default;  // 浅粉背景
+
+// 渐变色
+$she-gradient-primary: linear-gradient(135deg, #E91E63, #F48FB1) !default;
+$she-gradient-bg:     linear-gradient(180deg, #FCE4EC 0%, #FAF8FB 100%) !default;
+
+// --------------------------------------------
+// Semantic Colors (语义色系)
+// --------------------------------------------
+$she-period:   #E91E63 !default;  // 经期 - 粉红
+$she-trying:   #9C27B0 !default;  // 备孕 - 紫色
+$she-pregnant: #4CAF50 !default;  // 怀孕 - 绿色
+$she-nursing:  #FF9800 !default;  // 妈妈 - 橙色
+
+// 功能色
+$she-success: #00C9A7 !default;
+$she-warning: #FFB830 !default;
+$she-danger:  #FF5252 !default;
+$she-info:    #748FFC !default;
+
+// --------------------------------------------
+// Neutral Colors (中性色)
+$she-title:  #1A1A2E !default;
+$she-text:   #333333 !default;
+$she-sub:    #666666 !default;
+$she-muted:  #999999 !default;
+$she-border: #EEEEEE !default;
+$she-bg:     #FAF8FB !default;
+$she-white:  #FFFFFF !default;
+
+// --------------------------------------------
+// Typography (字体系统)
+// --------------------------------------------
+$she-font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+$she-font-size-xs:  12px;
+$she-font-size-sm:  14px;
+$she-font-size-md:  16px;
+$she-font-size-lg:  18px;
+$she-font-size-xl:  20px;
+$she-font-size-2xl: 24px;
+$she-font-size-3xl: 32px;
+
+$she-font-weight-normal:  400;
+$she-font-weight-medium:  500;
+$she-font-weight-semibold: 600;
+$she-font-weight-bold:    700;
+
+$she-line-height-tight:  1.25;
+$she-line-height-normal: 1.5;
+$she-line-height-loose:  1.75;
+
+// --------------------------------------------
+// Spacing (间距系统 - 8px 基准)
+// --------------------------------------------
+$she-space-1:  4px;
+$she-space-2:  8px;
+$she-space-3:  12px;
+$she-space-4:  16px;
+$she-space-5:  20px;
+$she-space-6:  24px;
+$she-space-8:  32px;
+$she-space-10: 40px;
+$she-space-12: 48px;
+$she-space-16: 64px;
+
+// --------------------------------------------
+// Border Radius (圆角系统)
+// --------------------------------------------
+$she-radius-sm:   4px;
+$she-radius-md:   8px;
+$she-radius-lg:   12px;
+$she-radius-xl:   16px;
+$she-radius-2xl:  24px;
+$she-radius-full: 9999px;
+
+// --------------------------------------------
+// Shadows (阴影系统)
+// --------------------------------------------
+$she-shadow-sm:  0 2px 8px rgba(233, 30, 99, 0.06);
+$she-shadow-md:  0 4px 16px rgba(233, 30, 99, 0.08);
+$she-shadow-lg:  0 8px 32px rgba(233, 30, 99, 0.12);
+$she-shadow-xl:  0 16px 48px rgba(233, 30, 99, 0.16);
+
+// --------------------------------------------
+// Transitions (过渡动画)
+// --------------------------------------------
+$she-transition-fast:   150ms ease;
+$she-transition-normal: 250ms ease;
+$she-transition-slow:   400ms ease;
+
+// --------------------------------------------
+// Z-Index 层级
+// --------------------------------------------
+$she-z-dropdown:  100;
+$she-z-sticky:    200;
+$she-z-fixed:     300;
+$she-z-modal:     400;
+$she-z-popover:   500;
+$she-z-tooltip:   600;

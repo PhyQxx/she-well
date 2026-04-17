@@ -1,0 +1,268 @@
+// ============================================
+// SheWell Element Plus Overrides
+// ============================================
+@import './variables.scss';
+
+// --------------------------------------------
+// CSS Variables Override
+// --------------------------------------------
+:root {
+  --el-color-primary: #{$she-primary};
+  --el-color-primary-light-3: #F48FB1;
+  --el-color-primary-light-5: #FCE4EC;
+  --el-color-primary-light-7: #FFF0F5;
+  --el-color-primary-light-8: #FFF5F7;
+  --el-color-primary-light-9: #FFFAFB;
+  --el-color-primary-dark-2: #C2185B;
+
+  --el-color-success: #{$she-success};
+  --el-color-warning: #{$she-warning};
+  --el-color-danger: #{$she-danger};
+  --el-color-info: #{$she-info};
+
+  --el-border-radius-base: #{$she-radius-lg};
+  --el-border-radius-small: #{$she-radius-md};
+  --el-border-radius-round: #{$she-radius-full};
+
+  --el-font-family: #{$she-font-family};
+  --el-font-size-base: #{$she-font-size-md};
+
+  --el-box-shadow-base: #{$she-shadow-md};
+  --el-box-shadow-light: #{$she-shadow-sm};
+  --el-box-shadow-lighter: 0 2px 12px rgba($she-primary, 0.04);
+
+  --el-text-color-primary: #{$she-title};
+  --el-text-color-regular: #{$she-text};
+  --el-text-color-secondary: #{$she-sub};
+  --el-text-color-placeholder: #{$she-muted};
+
+  --el-bg-color: #{$she-bg};
+  --el-bg-color-page: #{$she-bg};
+  --el-fill-color-blank: #{$she-white};
+}
+
+// --------------------------------------------
+// Button
+// --------------------------------------------
+.el-button {
+  font-weight: $she-font-weight-medium;
+  border-radius: $she-radius-lg;
+  transition: all $she-transition-normal;
+
+  &--primary {
+    background: $she-gradient-primary;
+    border: none;
+    box-shadow: $she-shadow-sm;
+
+    &:hover, &:focus {
+      background: linear-gradient(135deg, $she-primary-dark, $she-primary);
+      box-shadow: $she-shadow-md;
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0) scale(0.98);
+    }
+  }
+
+  &--default {
+    border-color: $she-border;
+    &:hover {
+      color: $she-primary;
+      border-color: $she-primary;
+      background: $she-primary-bg;
+    }
+  }
+
+  &--text {
+    color: $she-primary;
+    &:hover { color: $she-primary-dark; }
+  }
+}
+
+// --------------------------------------------
+// Card
+// --------------------------------------------
+.el-card {
+  border: none;
+  border-radius: $she-radius-xl;
+  box-shadow: $she-shadow-md;
+  transition: all $she-transition-normal;
+
+  &:hover {
+    box-shadow: $she-shadow-lg;
+  }
+
+  .el-card__header {
+    padding: $she-space-5 $she-space-6;
+    border-bottom: 1px solid $she-border;
+    font-weight: $she-font-weight-semibold;
+    color: $she-title;
+  }
+
+  .el-card__body {
+    padding: $she-space-6;
+  }
+}
+
+// --------------------------------------------
+// Menu
+// --------------------------------------------
+.el-menu {
+  border: none !important;
+
+  &-item {
+    border-radius: $she-radius-lg;
+    margin: $she-space-1 $she-space-2;
+    transition: all $she-transition-fast;
+
+    &:hover {
+      background: $she-primary-bg !important;
+      color: $she-primary !important;
+    }
+
+    &.is-active {
+      background: $she-primary-bg !important;
+      color: $she-primary !important;
+      font-weight: $she-font-weight-semibold;
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 3px;
+        height: 60%;
+        background: $she-primary;
+        border-radius: 0 $she-radius-sm $she-radius-sm 0;
+      }
+    }
+  }
+}
+
+// --------------------------------------------
+// Table
+// --------------------------------------------
+.el-table {
+  --el-table-border-color: #{$she-border};
+  --el-table-header-bg-color: #{$she-bg};
+  --el-table-row-hover-bg-color: #{rgba($she-primary, 0.04)};
+
+  border-radius: $she-radius-lg;
+  overflow: hidden;
+
+  th.el-table__cell {
+    font-weight: $she-font-weight-semibold;
+    color: $she-title;
+  }
+
+  tr:hover > td.el-table__cell {
+    background: rgba($she-primary, 0.04) !important;
+  }
+}
+
+// --------------------------------------------
+// Input
+// --------------------------------------------
+.el-input {
+  &__wrapper {
+    border-radius: $she-radius-lg !important;
+    transition: all $she-transition-normal;
+
+    &:hover {
+      box-shadow: 0 0 0 1px $she-primary-light inset;
+    }
+
+    &.is-focus {
+      box-shadow: 0 0 0 2px rgba($she-primary, 0.2) inset !important;
+    }
+  }
+}
+
+// --------------------------------------------
+// Form
+// --------------------------------------------
+.el-form {
+  &-item__label {
+    font-weight: $she-font-weight-medium;
+    color: $she-text;
+  }
+}
+
+// --------------------------------------------
+// Badge
+// --------------------------------------------
+.el-badge {
+  &__content {
+    background: $she-primary !important;
+    border: none !important;
+    box-shadow: $she-shadow-sm;
+  }
+}
+
+// --------------------------------------------
+// Tag
+// --------------------------------------------
+.el-tag {
+  border-radius: $she-radius-full !important;
+  border: none !important;
+  font-weight: $she-font-weight-medium;
+
+  &--primary {
+    background: $she-primary-bg !important;
+    color: $she-primary !important;
+  }
+
+  &--success {
+    background: rgba($she-success, 0.1) !important;
+    color: $she-success !important;
+  }
+
+  &--warning {
+    background: rgba($she-warning, 0.1) !important;
+    color: $she-warning !important;
+  }
+
+  &--danger {
+    background: rgba($she-danger, 0.1) !important;
+    color: $she-danger !important;
+  }
+}
+
+// --------------------------------------------
+// Empty
+// --------------------------------------------
+.el-empty {
+  &__description {
+    color: $she-muted;
+  }
+}
+
+// --------------------------------------------
+// Dialog
+// --------------------------------------------
+.el-dialog {
+  border-radius: $she-radius-2xl !important;
+  overflow: hidden;
+
+  &__header {
+    padding: $she-space-6 $she-space-6 $she-space-4;
+    border-bottom: 1px solid $she-border;
+  }
+
+  &__title {
+    font-size: $she-font-size-xl;
+    font-weight: $she-font-weight-semibold;
+    color: $she-title;
+  }
+
+  &__body {
+    padding: $she-space-6;
+  }
+
+  &__footer {
+    padding: $she-space-4 $she-space-6 $she-space-6;
+    border-top: 1px solid $she-border;
+  }
+}

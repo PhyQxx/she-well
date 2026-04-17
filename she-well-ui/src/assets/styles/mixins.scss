@@ -1,0 +1,176 @@
+// ============================================
+// SheWell Mixins - 工具混入
+// ============================================
+@import './variables.scss';
+
+// --------------------------------------------
+// Flexbox 工具
+// --------------------------------------------
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+// --------------------------------------------
+// 文本截断
+// --------------------------------------------
+@mixin text-ellipsis($lines: 1) {
+  @if $lines == 1 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  } @else {
+    display: -webkit-box;
+    -webkit-line-clamp: $lines;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// --------------------------------------------
+// 渐变卡片背景
+// --------------------------------------------
+@mixin gradient-card($color: $she-primary, $light: $she-primary-light) {
+  background: linear-gradient(135deg, $color, $light);
+  border-radius: $she-radius-2xl;
+  padding: $she-space-8;
+  color: #fff;
+}
+
+// --------------------------------------------
+// 软卡片 (白底+阴影)
+// --------------------------------------------
+@mixin soft-card {
+  background: $she-white;
+  border-radius: $she-radius-xl;
+  box-shadow: $she-shadow-md;
+  padding: $she-space-6;
+}
+
+// --------------------------------------------
+// 状态标签
+// --------------------------------------------
+@mixin status-tag($bg: $she-primary-bg, $color: $she-primary) {
+  display: inline-flex;
+  align-items: center;
+  padding: $she-space-1 $she-space-3;
+  background: $bg;
+  color: $color;
+  border-radius: $she-radius-full;
+  font-size: $she-font-size-xs;
+  font-weight: $she-font-weight-medium;
+}
+
+// --------------------------------------------
+// 页面容器
+// --------------------------------------------
+@mixin page-container {
+  padding: $she-space-6;
+  background: $she-bg;
+  min-height: 100%;
+}
+
+// --------------------------------------------
+// 按钮基础
+// --------------------------------------------
+@mixin btn-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $she-space-2;
+  padding: $she-space-3 $she-space-6;
+  border-radius: $she-radius-lg;
+  font-size: $she-font-size-sm;
+  font-weight: $she-font-weight-medium;
+  cursor: pointer;
+  transition: all $she-transition-normal;
+  border: none;
+  outline: none;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+@mixin btn-primary {
+  @include btn-base;
+  background: $she-gradient-primary;
+  color: #fff;
+  box-shadow: $she-shadow-md;
+
+  &:hover {
+    box-shadow: $she-shadow-lg;
+    transform: translateY(-1px);
+  }
+}
+
+@mixin btn-ghost {
+  @include btn-base;
+  background: transparent;
+  color: $she-primary;
+  border: 1px solid $she-primary;
+
+  &:hover {
+    background: $she-primary-bg;
+  }
+}
+
+// --------------------------------------------
+// 动画混入
+// --------------------------------------------
+@mixin fade-in {
+  animation: fadeIn $she-transition-normal forwards;
+}
+
+@mixin slide-up {
+  animation: slideUp $she-transition-normal forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// --------------------------------------------
+// 滚动条美化
+// --------------------------------------------
+@mixin custom-scrollbar {
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba($she-primary, 0.2);
+    border-radius: $she-radius-full;
+    &:hover {
+      background: rgba($she-primary, 0.4);
+    }
+  }
+}

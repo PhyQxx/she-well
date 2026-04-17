@@ -1,30 +1,40 @@
 <template>
   <view class="index-page">
-    <!-- Banner -->
     <swiper class="banner" indicator-dots autoplay circular interval="3000">
       <swiper-item v-for="b in banners" :key="b.id">
         <image :src="b.imageUrl || '/static/banner1.png'" mode="scaleToFill" class="banner-img" />
       </swiper-item>
     </swiper>
 
-    <!-- 模式切换 Tabs -->
     <view class="mode-tabs">
       <view
-        v-for="m in modes" :key="m.key"
+        v-for="m in modes"
+        :key="m.key"
         class="mode-tab"
         :class="{ active: currentMode === m.key }"
         @click="switchMode(m.key)"
-      >{{ m.label }}</view>
+      >
+        <text>{{ m.label }}</text>
+      </view>
     </view>
 
-    <!-- 经期模式 -->
-    <view v-if="currentMode === 'period'" class="mode-content">
-      <view class="date-ring">
-        <view class="ring-title">{{ isPeriod ? '经期第 ' + periodDay + ' 天' : '距下次经期还有 ' + daysUntilNext + ' 天' }}</view>
-        <view class="ring-subtitle" v-if="nextPeriodDate">{{ nextPeriodDate }} 预计来经</view>
-        <view class="ring-subtitle" v-else>暂无预测数据</view>
+    <view v-if="currentMode === 'period'" class="mode-content animate-fade-in">
+      <view class="main-card period-card">
+        <view class="card-deco"></view>
+        <view class="card-content">
+          <view class="card-main-num">
+            {{ isPeriod ? periodDay + '天' : daysUntilNext + '天' }}
+          </view>
+          <view class="card-main-label">
+            {{ isPeriod ? '经期进行中' : '距下次经期' }}
+          </view>
+          <view class="card-sub" v-if="nextPeriodDate">
+            预计 {{ nextPeriodDate }} 来经
+          </view>
+        </view>
       </view>
-      <view class="quick-actions">
+
+      <view class="action-grid">
         <view class="action-btn pink" @click="recordPeriodStart">
           <text class="action-icon">🩸</text>
           <text class="action-label">经期开始</text>
@@ -33,25 +43,36 @@
           <text class="action-icon">✅</text>
           <text class="action-label">健康打卡</text>
         </view>
+        <view class="action-btn blue" @click="goToAI">
+          <text class="action-icon">🤖</text>
+          <text class="action-label">AI助手</text>
+        </view>
       </view>
+
       <view class="tips-card">
         <view class="tips-header">
-          <view class="tips-title">💡 今日建议</view>
-          <view class="tips-ai-btn" @click="goToAI">AI助手 🤖</view>
+          <text class="tips-title">💡 今日建议</text>
         </view>
         <view class="tips-content">{{ todayTip }}</view>
       </view>
     </view>
 
-    <!-- 备孕模式 -->
-    <view v-if="currentMode === 'trying'" class="mode-content">
-      <view class="ovulation-card">
-        <view class="ovu-title">🎯 排卵日预测</view>
-        <view class="ovu-date">{{ ovulationDate || '暂无数据' }}</view>
-        <view class="ovu-days" v-if="daysToOvulation > 0">还有 {{ daysToOvulation }} 天</view>
-        <view class="ovu-days active" v-else-if="ovulationDate">今天是排卵日！</view>
+    <view v-if="currentMode === 'trying'" class="mode-content animate-fade-in">
+      <view class="main-card trying-card">
+        <view class="card-deco"></view>
+        <view class="card-content">
+          <view class="card-main-num">{{ ovulationDate || '--' }}</view>
+          <view class="card-main-label">排卵日预测</view>
+          <view class="card-sub" v-if="daysToOvulation > 0">
+            还有 {{ daysToOvulation }} 天
+          </view>
+          <view class="card-sub active" v-else-if="ovulationDate">
+            今天是排卵日！🎉
+          </view>
+        </view>
       </view>
-      <view class="quick-actions">
+
+      <view class="action-grid">
         <view class="action-btn green" @click="recordBbt">
           <text class="action-icon">🌡️</text>
           <text class="action-label">记录体温</text>
@@ -67,30 +88,40 @@
       </view>
     </view>
 
-    <!-- 怀孕模式 -->
-    <view v-if="currentMode === 'pregnancy'" class="mode-content">
-      <view class="preg-card">
-        <view class="preg-week">孕第 {{ pregWeek }} 周</view>
-        <view class="preg-day">第 {{ pregDay }} 天</view>
-        <view class="preg-edd">预产期：{{ edd || '暂未设置' }}</view>
+    <view v-if="currentMode === 'pregnancy'" class="mode-content animate-fade-in">
+      <view class="main-card pregnant-card">
+        <view class="card-deco"></view>
+        <view class="card-content">
+          <view class="card-main-num">{{ pregWeek }}周</view>
+          <view class="card-main-label">孕程进行中</view>
+          <view class="card-sub" v-if="edd">预产期：{{ edd }}</view>
+        </view>
       </view>
-      <view class="preg-checkup">
-        <view class="checkup-title">📅 下次产检</view>
-        <view class="checkup-info" v-if="nextCheckup">{{ nextCheckup.date }} - {{ nextCheckup.item }}</view>
-        <view class="checkup-info" v-else>暂无产检安排</view>
+
+      <view class="checkup-card">
+        <view class="checkup-header">
+          <text>📅 下次产检</text>
+        </view>
+        <view class="checkup-info" v-if="nextCheckup">
+          {{ nextCheckup.date }} - {{ nextCheckup.item }}
+        </view>
+        <view class="checkup-info empty" v-else>暂无产检安排</view>
       </view>
     </view>
 
-    <!-- 妈妈模式 -->
-    <view v-if="currentMode === 'nursing'" class="mode-content">
-      <view class="baby-card" v-if="babies.length">
-        <view v-for="baby in babies" :key="baby.id" class="baby-item">
-          <view class="baby-name">{{ baby.name }}</view>
-          <view class="baby-age">{{ babyAge(baby.birthDate) }}</view>
+    <view v-if="currentMode === 'nursing'" class="mode-content animate-fade-in">
+      <view class="baby-list" v-if="babies.length">
+        <view class="baby-card" v-for="baby in babies" :key="baby.id">
+          <view class="baby-info">
+            <text class="baby-name">{{ baby.name }}</text>
+            <text class="baby-age">{{ babyAge(baby.birthDate) }}</text>
+          </view>
         </view>
       </view>
-      <view class="nursing-tips">
-        <view class="tips-title">🌸 产后恢复</view>
+      <view class="tips-card">
+        <view class="tips-header">
+          <text class="tips-title">🌸 产后恢复</text>
+        </view>
         <view class="tips-content">保持心情愉悦，适当运动，注意营养补充</view>
       </view>
     </view>
@@ -131,7 +162,6 @@ async function switchMode(mode) {
 }
 
 async function loadData() {
-  // 加载用户设置（当前模式）
   try {
     const settingsRes = await user.getSettings()
     if (settingsRes.data && settingsRes.data.currentMode) {
@@ -139,13 +169,11 @@ async function loadData() {
     }
   } catch {}
 
-  // 加载轮播图
   try {
     const bannerRes = await discovery.banners()
     if (bannerRes.data) banners.value = bannerRes.data
   } catch {}
 
-  // 加载经期预测数据
   try {
     const predRes = await period.prediction()
     if (predRes.data) {
@@ -181,7 +209,6 @@ async function loadData() {
     }
   } catch {}
 
-  // 加载怀孕记录（如果是怀孕模式）
   if (currentMode.value === 'pregnancy') {
     try {
       const pregRes = await pregnancy.getRecord()
@@ -199,7 +226,6 @@ async function loadData() {
     } catch {}
   }
 
-  // 加载宝宝列表（如果是妈妈模式）
   if (currentMode.value === 'nursing') {
     try {
       const babyRes = await baby.list()
@@ -247,43 +273,144 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.index-page { min-height: 100vh; background: #faf8fb; padding-bottom: 120rpx }
-.banner { height: 320rpx; overflow: hidden; border-radius: 0 0 24rpx 24rpx }
-.banner-img { width: 100%; height: 100% }
-.mode-tabs { display: flex; padding: 24rpx 32rpx; gap: 16rpx }
-.mode-tab { flex: 1; text-align: center; padding: 16rpx 0; border-radius: 20rpx; background: #fff; font-size: 26rpx; color: #666; font-weight: 500 }
-.mode-tab.active { background: linear-gradient(135deg, #E91E63, #F48FB1); color: #fff }
-.mode-content { padding: 0 32rpx }
-.date-ring { background: linear-gradient(135deg, #E91E63, #F48FB1); border-radius: 24rpx; padding: 40rpx; text-align: center; color: #fff; margin-bottom: 24rpx }
-.ring-title { font-size: 48rpx; font-weight: bold; margin-bottom: 12rpx }
-.ring-subtitle { font-size: 26rpx; opacity: 0.9 }
-.quick-actions { display: flex; gap: 24rpx; margin-bottom: 24rpx }
-.action-btn { flex: 1; background: #fff; border-radius: 20rpx; padding: 32rpx 0; text-align: center; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.06) }
-.action-icon { display: block; font-size: 48rpx; margin-bottom: 8rpx }
-.action-label { font-size: 24rpx; color: #666 }
-.tips-card { background: #fff; border-radius: 20rpx; padding: 24rpx; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.06); margin-bottom: 24rpx }
-.tips-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12rpx }
-.tips-title { font-size: 28rpx; font-weight: 600 }
-.tips-ai-btn { font-size: 24rpx; color: #E91E63; background: #fff5f7; padding: 6rpx 16rpx; border-radius: 20rpx }
-.tips-content { font-size: 26rpx; color: #666; line-height: 1.8 }
-.ovulation-card { background: linear-gradient(135deg, #9C27B0, #CE93D8); border-radius: 24rpx; padding: 40rpx; text-align: center; color: #fff; margin-bottom: 24rpx }
-.ovu-title { font-size: 28rpx; opacity: 0.9; margin-bottom: 12rpx }
-.ovu-date { font-size: 52rpx; font-weight: bold; margin-bottom: 8rpx }
-.ovu-days { font-size: 26rpx; opacity: 0.9 }
-.ovu-days.active { background: #fff; color: #9C27B0; border-radius: 20rpx; display: inline-block; padding: 8rpx 24rpx; margin-top: 12rpx }
-.preg-card { background: linear-gradient(135deg, #4CAF50, #A5D6A7); border-radius: 24rpx; padding: 40rpx; text-align: center; color: #fff; margin-bottom: 24rpx }
-.preg-week { font-size: 36rpx; font-weight: bold }
-.preg-day { font-size: 64rpx; font-weight: bold; margin: 8rpx 0 }
-.preg-edd { font-size: 26rpx; opacity: 0.9 }
-.preg-checkup { background: #fff; border-radius: 20rpx; padding: 24rpx; margin-bottom: 24rpx }
-.checkup-title { font-size: 28rpx; font-weight: 600; margin-bottom: 12rpx }
-.checkup-info { font-size: 26rpx; color: #666 }
-.baby-card { background: #fff; border-radius: 20rpx; padding: 24rpx; margin-bottom: 24rpx }
-.baby-item { display: flex; justify-content: space-between; padding: 16rpx 0; border-bottom: 1rpx solid #f0f0f0 }
-.baby-item:last-child { border-bottom: none }
-.baby-name { font-size: 30rpx; font-weight: 600; color: #333 }
-.baby-age { font-size: 26rpx; color: #999 }
-.nursing-tips { background: #fff; border-radius: 20rpx; padding: 24rpx; margin-bottom: 24rpx }
-.tabbar-placeholder { height: 120rpx }
+<style lang="scss" scoped>
+@import '@/uni.scss';
+
+.index-page {
+  min-height: 100vh;
+  background: $she-bg;
+  padding-bottom: 120rpx;
+}
+
+.banner {
+  height: 320rpx;
+  overflow: hidden;
+  .banner-img { width: 100%; height: 100%; }
+}
+
+.mode-tabs {
+  display: flex;
+  padding: 24rpx 32rpx;
+  gap: 16rpx;
+}
+
+.mode-tab {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  border-radius: 20rpx;
+  background: $she-white;
+  font-size: 26rpx;
+  color: $she-sub;
+  font-weight: 500;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04);
+  transition: all 0.25s ease;
+  &.active {
+    background: $she-gradient-primary;
+    color: #fff;
+    box-shadow: 0 8rpx 24rpx rgba($she-primary, 0.3);
+    &:active { transform: scale(0.97); }
+  }
+}
+
+.mode-content { padding: 0 32rpx; }
+
+.main-card {
+  border-radius: 32rpx;
+  padding: 48rpx 40rpx;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 24rpx;
+  &.period-card { background: linear-gradient(135deg, $she-period, #F8BBD9); }
+  &.trying-card { background: linear-gradient(135deg, $she-trying, #CE93D8); }
+  &.pregnant-card { background: linear-gradient(135deg, $she-pregnant, #A5D6A7); }
+  &.nursing-card { background: linear-gradient(135deg, $she-nursing, #FFCC80); }
+}
+
+.card-deco {
+  position: absolute;
+  top: -60rpx;
+  right: -60rpx;
+  width: 240rpx;
+  height: 240rpx;
+  background: rgba(255,255,255,0.1);
+  border-radius: 50%;
+}
+
+.card-content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.card-main-num { font-size: 72rpx; font-weight: 700; margin-bottom: 8rpx; }
+.card-main-label { font-size: 28rpx; opacity: 0.9; margin-bottom: 12rpx; }
+.card-sub {
+  font-size: 24rpx; opacity: 0.8;
+  &.active {
+    display: inline-block;
+    background: rgba(255,255,255,0.25);
+    padding: 8rpx 24rpx;
+    border-radius: 20rpx;
+    margin-top: 8rpx;
+  }
+}
+
+.action-grid { display: flex; gap: 24rpx; margin-bottom: 24rpx; }
+
+.action-btn {
+  flex: 1;
+  background: $she-white;
+  border-radius: 24rpx;
+  padding: 32rpx 0;
+  text-align: center;
+  box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.06);
+  transition: all 0.25s ease;
+  &:active { transform: scale(0.97); }
+  .action-icon { display: block; font-size: 48rpx; margin-bottom: 8rpx; }
+  .action-label { font-size: 24rpx; color: $she-sub; }
+  &.pink:active { background: rgba($she-period, 0.08); }
+  &.purple:active { background: rgba($she-trying, 0.08); }
+  &.blue:active { background: rgba($she-info, 0.08); }
+  &.green:active { background: rgba($she-pregnant, 0.08); }
+  &.orange:active { background: rgba($she-nursing, 0.08); }
+}
+
+.tips-card {
+  background: $she-white;
+  border-radius: 24rpx;
+  padding: 28rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.06);
+  margin-bottom: 24rpx;
+}
+
+.tips-header { margin-bottom: 12rpx; }
+.tips-title { font-size: 28rpx; font-weight: 600; color: $she-title; }
+.tips-content { font-size: 26rpx; color: $she-sub; line-height: 1.8; }
+
+.checkup-card {
+  background: $she-white;
+  border-radius: 24rpx;
+  padding: 28rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.06);
+  margin-bottom: 24rpx;
+}
+
+.checkup-header { font-size: 28rpx; font-weight: 600; color: $she-title; margin-bottom: 12rpx; }
+.checkup-info { font-size: 26rpx; color: $she-sub; &.empty { color: $she-muted; } }
+
+.baby-list { margin-bottom: 24rpx; }
+.baby-card {
+  background: $she-white;
+  border-radius: 24rpx;
+  padding: 28rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.06);
+  margin-bottom: 16rpx;
+}
+.baby-info { display: flex; justify-content: space-between; align-items: center; }
+.baby-name { font-size: 32rpx; font-weight: 600; color: $she-title; }
+.baby-age { font-size: 26rpx; color: $she-muted; }
+
+.tabbar-placeholder { height: 120rpx; }
 </style>

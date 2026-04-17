@@ -1,12 +1,350 @@
-/* SheWell 品牌色变量 */
-$she-primary: #E91E63;
-$she-primary-light: #F48FB1;
-$she-primary-dark: #C2185B;
-$she-bg: #FFF5F7;
-$she-text: #333333;
-$she-text-light: #999999;
-$she-border: #F0F0F0;
+/* ============================================
+   SheWell Mobile Design System - uni.scss
+   ============================================ */
 
-/* 全局样式 */
-page { background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-view { font-size: 28rpx; color: $she-text; }
+/* --------------------------------------------
+// Brand Colors (品牌色系)
+// -------------------------------------------- */
+$she-primary:       #E91E63;
+$she-primary-light: #F48FB1;
+$she-primary-dark:  #C2185B;
+$she-primary-bg:   #FCE4EC;
+
+/* Shadows */
+// Semantic Colors (语义色系)
+// -------------------------------------------- */
+$she-period:   #E91E63;
+$she-trying:   #9C27B0;
+$she-pregnant: #4CAF50;
+$she-nursing:  #FF9800;
+
+/* 功能色 */
+$she-success: #00C9A7;
+$she-warning: #FFB830;
+$she-danger:  #FF5252;
+$she-info:    #748FFC;
+
+/* 渐变色 (语义色之后) */
+$she-gradient-primary:  linear-gradient(135deg, $she-primary, $she-primary-light);
+$she-gradient-bg:       linear-gradient(180deg, #FCE4EC 0%, #FAF8FB 100%);
+/* Shadows */
+$she-shadow-sm: 0 4rpx 16rpx rgba(0,0,0,0.04);
+$she-shadow-md: 0 8rpx 32rpx rgba(0,0,0,0.08);
+$she-shadow-lg: 0 16rpx 48rpx rgba(0,0,0,0.12);
+
+/* 渐变色 (语义色之后) */
+$she-gradient-primary:  linear-gradient(135deg, $she-primary, $she-primary-light);
+$she-gradient-bg:       linear-gradient(180deg, #FCE4EC 0%, #FAF8FB 100%);
+$she-gradient-period:   linear-gradient(135deg, $she-period, #F8BBD9);
+$she-gradient-trying:   linear-gradient(135deg, $she-trying, #CE93D8);
+$she-gradient-pregnant: linear-gradient(135deg, $she-pregnant, #A5D6A7);
+$she-gradient-nursing:  linear-gradient(135deg, $she-nursing, #FFCC80);
+
+/* -------------------------------------------- */
+// Neutral Colors (中性色)
+// -------------------------------------------- */
+
+$she-title:  #1A1A2E;
+$she-text:   #333333;
+$she-sub:    #666666;
+$she-muted:  #999999;
+$she-border: #F0F0F0;
+$she-bg:     #FAF8FB;
+$she-white:  #FFFFFF;
+
+/* --------------------------------------------
+// Typography
+// -------------------------------------------- */
+$she-font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+
+/* --------------------------------------------
+// 全局样式
+// -------------------------------------------- */
+page {
+  background-color: $she-bg;
+  font-family: $she-font-family;
+  font-size: 28rpx;
+  color: $she-text;
+  line-height: 1.5;
+}
+
+view, text {
+  font-family: $she-font-family;
+  box-sizing: border-box;
+}
+
+/* --------------------------------------------
+// Flexbox 工具类
+// -------------------------------------------- */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-center { display: flex; align-items: center; justify-content: center; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.flex-1 { flex: 1; }
+.flex-wrap { flex-wrap: wrap; }
+.items-center { align-items: center; }
+.items-start { align-items: flex-start; }
+.items-end { align-items: flex-end; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+
+/* --------------------------------------------
+// 间距
+// -------------------------------------------- */
+.gap-1 { gap: 8rpx; }
+.gap-2 { gap: 16rpx; }
+.gap-3 { gap: 24rpx; }
+.gap-4 { gap: 32rpx; }
+
+.m-0 { margin: 0; }
+.mt-1 { margin-top: 8rpx; }
+.mt-2 { margin-top: 16rpx; }
+.mt-3 { margin-top: 24rpx; }
+.mt-4 { margin-top: 32rpx; }
+.mb-1 { margin-bottom: 8rpx; }
+.mb-2 { margin-bottom: 16rpx; }
+.mb-3 { margin-bottom: 24rpx; }
+.mb-4 { margin-bottom: 32rpx; }
+.p-0 { padding: 0; }
+.p-2 { padding: 16rpx; }
+.p-3 { padding: 24rpx; }
+.p-4 { padding: 32rpx; }
+
+/* --------------------------------------------
+// 文本
+// -------------------------------------------- */
+.text-primary { color: $she-primary; }
+.text-sub { color: $she-sub; }
+.text-muted { color: $she-muted; }
+.text-success { color: $she-success; }
+.text-warning { color: $she-warning; }
+.text-danger { color: $she-danger; }
+.text-center { text-align: center; }
+.text-bold { font-weight: 600; }
+
+.text-xs { font-size: 20rpx; }
+.text-sm { font-size: 24rpx; }
+.text-md { font-size: 28rpx; }
+.text-lg { font-size: 32rpx; }
+.text-xl { font-size: 36rpx; }
+.text-2xl { font-size: 40rpx; }
+.text-3xl { font-size: 48rpx; }
+
+/* 文本截断 */
+.text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------
+// 圆角
+// -------------------------------------------- */
+.radius-sm { border-radius: 8rpx; }
+.radius-md { border-radius: 16rpx; }
+.radius-lg { border-radius: 24rpx; }
+.radius-xl { border-radius: 32rpx; }
+.radius-2xl { border-radius: 48rpx; }
+.radius-full { border-radius: 9999rpx; }
+
+/* --------------------------------------------
+// 阴影
+// -------------------------------------------- */
+.shadow-sm { box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04); }
+.shadow-md { box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.08); }
+.shadow-lg { box-shadow: 0 16rpx 48rpx rgba(0,0,0,0.12); }
+
+/* --------------------------------------------
+// 卡片
+// -------------------------------------------- */
+.she-card {
+  background: $she-white;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.08);
+}
+
+/* --------------------------------------------
+// 按钮
+// -------------------------------------------- */
+.she-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20rpx 32rpx;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  border: none;
+  transition: all 0.25s ease;
+
+  &:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+
+  &.primary {
+    background: $she-gradient-primary;
+    color: #fff;
+    box-shadow: 0 8rpx 24rpx rgba($she-primary, 0.3);
+
+    &:hover {
+      box-shadow: 0 12rpx 32rpx rgba($she-primary, 0.4);
+      transform: translateY(-2rpx);
+    }
+  }
+
+  &.ghost {
+    background: transparent;
+    color: $she-primary;
+    border: 2rpx solid $she-primary;
+
+    &:active {
+      background: $she-primary-bg;
+    }
+  }
+
+  &.block {
+    width: 100%;
+  }
+
+  &.large {
+    height: 96rpx;
+    font-size: 34rpx;
+    font-weight: 600;
+  }
+
+  &[disabled] {
+    opacity: 0.6;
+  }
+}
+
+/* --------------------------------------------
+// 渐变卡片背景
+// -------------------------------------------- */
+.gradient-card {
+  background: $she-gradient-primary;
+  border-radius: 24rpx;
+  padding: 40rpx;
+  color: #fff;
+
+  &.period { background: linear-gradient(135deg, $she-period, #F8BBD9); }
+  &.trying { background: linear-gradient(135deg, $she-trying, #CE93D8); }
+  &.pregnant { background: linear-gradient(135deg, $she-pregnant, #A5D6A7); }
+  &.nursing { background: linear-gradient(135deg, $she-nursing, #FFCC80); }
+}
+
+/* --------------------------------------------
+// 标签
+// -------------------------------------------- */
+.she-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4rpx 16rpx;
+  border-radius: 9999rpx;
+  font-size: 22rpx;
+  font-weight: 500;
+
+  &.primary { background: $she-primary-bg; color: $she-primary; }
+  &.success { background: rgba($she-success, 0.1); color: $she-success; }
+  &.warning { background: rgba($she-warning, 0.1); color: $she-warning; }
+  &.danger { background: rgba($she-danger, 0.1); color: $she-danger; }
+  &.period { background: rgba($she-period, 0.1); color: $she-period; }
+  &.trying { background: rgba($she-trying, 0.1); color: $she-trying; }
+  &.pregnant { background: rgba($she-pregnant, 0.1); color: $she-pregnant; }
+  &.nursing { background: rgba($she-nursing, 0.1); color: $she-nursing; }
+}
+
+/* --------------------------------------------
+// 输入框
+// -------------------------------------------- */
+.she-input {
+  display: flex;
+  align-items: center;
+  border-bottom: 2rpx solid $she-border;
+  padding: 24rpx 0;
+
+  input {
+    flex: 1;
+    font-size: 32rpx;
+    color: $she-text;
+    border: none;
+    outline: none;
+    background: transparent;
+
+    &::placeholder {
+      color: $she-muted;
+    }
+  }
+}
+
+/* --------------------------------------------
+// 空状态
+// -------------------------------------------- */
+.she-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 40rpx;
+  color: $she-muted;
+  text-align: center;
+
+  .empty-icon {
+    font-size: 96rpx;
+    margin-bottom: 16rpx;
+    opacity: 0.5;
+  }
+
+  .empty-text {
+    font-size: 26rpx;
+  }
+}
+
+/* --------------------------------------------
+// TabBar 占位
+// -------------------------------------------- */
+.tabbar-placeholder {
+  height: 120rpx;
+}
+
+/* --------------------------------------------
+// 动画
+// -------------------------------------------- */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease forwards;
+}
+
+/* --------------------------------------------
+// 滚动条
+// -------------------------------------------- */
+scroll-view {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

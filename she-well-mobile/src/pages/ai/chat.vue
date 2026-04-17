@@ -1,55 +1,61 @@
 <template>
   <view class="ai-chat-page">
-    <!-- Header -->
-    <view class="chat-header">
-      <view class="header-left" @click="goBack">
-        <text class="back-icon">←</text>
-      </view>
-      <view class="header-title">
-        <text class="ai-avatar">🤖</text>
-        <text class="ai-name">SheWell 健康助手</text>
-      </view>
-      <view class="header-right">
+    <!-- 头部 -->
+    <view class="page-header">
+      <view class="header-bg"></view>
+      <view class="header-content">
+        <text class="back-btn" @click="goBack">←</text>
+        <view class="header-center">
+          <text class="header-icon">🤖</text>
+          <view class="header-text">
+            <text class="header-title">AI 健康助手</text>
+            <text class="header-sub">SheWell 智能咨询</text>
+          </view>
+        </view>
         <view class="model-select" @click="showModelPicker = true">
           <text class="model-name">{{ currentModel }}</text>
         </view>
       </view>
     </view>
 
-    <!-- Disclaimer Banner -->
-    <view class="disclaimer" v-if="showDisclaimer">
+    <!-- 免责声明 -->
+    <view class="disclaimer-banner" v-if="showDisclaimer">
       <text class="disclaimer-icon">⚠️</text>
       <text class="disclaimer-text">AI 仅供参考，不能替代医生诊断。如有不适请就医。</text>
       <text class="disclaimer-close" @click="showDisclaimer = false">×</text>
     </view>
 
-    <!-- Message List -->
+    <!-- 消息列表 -->
     <scroll-view
       class="message-list"
       :scroll-y="true"
       :scroll-top="scrollTop"
       :style="{ height: messageListHeight }"
     >
-      <!-- Welcome Message -->
-      <view class="welcome-msg" v-if="messages.length === 0">
+      <!-- 欢迎界面 -->
+      <view class="welcome-screen" v-if="messages.length === 0">
         <view class="welcome-icon">🤖</view>
-        <view class="welcome-title">你好，我是 SheWell 健康助手</view>
+        <view class="welcome-title">你好，我是 SheWell AI 助手</view>
         <view class="welcome-desc">我可以帮你解答经期、备孕、怀孕等方面的健康问题</view>
-        <view class="quick-questions">
-          <view class="quick-title">快捷问题</view>
-          <view class="quick-list">
+        <view class="quick-chips">
+          <view class="chips-title">💡 快捷问题</view>
+          <view class="chips-list">
             <view
               v-for="q in quickQuestions"
               :key="q"
-              class="quick-item"
+              class="chip-item"
               @click="sendQuickQuestion(q)"
             >{{ q }}</view>
           </view>
         </view>
       </view>
 
-      <!-- Chat Messages -->
-      <view v-for="(msg, idx) in messages" :key="idx" :class="['message-item', msg.role]">
+      <!-- 聊天消息 -->
+      <view
+        v-for="(msg, idx) in messages"
+        :key="idx"
+        :class="['message-item', msg.role]"
+      >
         <view class="msg-avatar">{{ msg.role === 'user' ? '👩' : '🤖' }}</view>
         <view class="msg-content">
           <view class="msg-bubble">{{ msg.content }}</view>
@@ -57,7 +63,7 @@
         </view>
       </view>
 
-      <!-- Typing Indicator -->
+      <!-- 打字中 -->
       <view class="message-item assistant" v-if="isTyping">
         <view class="msg-avatar">🤖</view>
         <view class="msg-content">
@@ -72,7 +78,7 @@
       <view id="scroll-bottom"></view>
     </scroll-view>
 
-    <!-- Input Area -->
+    <!-- 底部输入区 -->
     <view class="input-area">
       <view class="input-main">
         <textarea
@@ -95,7 +101,7 @@
         </view>
       </view>
 
-      <!-- Quick Actions -->
+      <!-- 快捷操作 -->
       <view class="quick-actions">
         <view class="qa-item" @click="switchTab('advice')">
           <text class="qa-icon">💡</text>
@@ -112,10 +118,17 @@
       </view>
     </view>
 
-    <!-- Model Picker Popup -->
-    <view class="model-picker-overlay" v-if="showModelPicker" @click="showModelPicker = false">
-      <view class="model-picker-sheet" @click.stop>
-        <view class="picker-title">选择 AI 模型</view>
+    <!-- 底部占位 -->
+    <view class="bottom-placeholder"></view>
+
+    <!-- 模型选择弹窗 -->
+    <view class="dialog-overlay" v-if="showModelPicker" @click="showModelPicker = false">
+      <view class="dialog-sheet" @click.stop>
+        <view class="sheet-header">
+          <text class="sheet-cancel" @click="showModelPicker = false">取消</text>
+          <text class="sheet-title">选择 AI 模型</text>
+          <text class="sheet-confirm"></text>
+        </view>
         <view
           v-for="m in models"
           :key="m.name"
@@ -129,7 +142,6 @@
           </view>
           <view class="picker-check" v-if="m.name === currentModel">✓</view>
         </view>
-        <view class="picker-cancel" @click="showModelPicker = false">取消</view>
       </view>
     </view>
   </view>
@@ -286,103 +298,273 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped>
-.ai-chat-page { height: 100vh; display: flex; flex-direction: column; background: #f5f5f7 }
+<style lang="scss" scoped>
+@import "../../uni.scss";
 
-.chat-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 24rpx 32rpx; padding-top: 60rpx;
-  background: linear-gradient(135deg, #E91E63, #F48FB1);
-  color: #fff; flex-shrink: 0;
+.ai-chat-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: $she-bg;
 }
-.header-left, .header-right { width: 120rpx }
-.back-icon { font-size: 40rpx; color: #fff }
-.header-title { display: flex; flex-direction: column; align-items: center; gap: 4rpx }
-.ai-avatar { font-size: 36rpx }
-.ai-name { font-size: 28rpx; font-weight: 600 }
-.model-select { text-align: right }
-.model-name { font-size: 22rpx; background: rgba(255,255,255,0.25); padding: 4rpx 16rpx; border-radius: 20rpx }
 
-.disclaimer {
-  display: flex; align-items: center; gap: 12rpx;
-  background: #FFF3E0; padding: 16rpx 32rpx; flex-shrink: 0;
+// 头部
+.page-header { position: relative; }
+
+.header-bg {
+  height: 220rpx;
+  background: $she-gradient-primary;
+  border-radius: 0 0 48rpx 48rpx;
 }
-.disclaimer-icon { font-size: 28rpx }
+
+.header-content {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  padding: 80rpx 32rpx 0;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.back-btn {
+  font-size: 44rpx;
+  color: #fff;
+  min-width: 60rpx;
+}
+
+.header-center {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.header-icon { font-size: 44rpx; }
+
+.header-text { display: flex; flex-direction: column; }
+
+.header-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #fff;
+}
+
+.header-sub {
+  font-size: 22rpx;
+  color: rgba(255,255,255,0.8);
+}
+
+.model-select {
+  min-width: 100rpx;
+  text-align: right;
+}
+
+.model-name {
+  font-size: 22rpx;
+  color: #fff;
+  background: rgba(255,255,255,0.25);
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+}
+
+// 免责声明
+.disclaimer-banner {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  background: #FFF3E0;
+  padding: 16rpx 32rpx;
+  margin: 16rpx 32rpx 0;
+  border-radius: 16rpx;
+}
+
+.disclaimer-icon { font-size: 28rpx; }
 .disclaimer-text { flex: 1; font-size: 22rpx; color: #E65100; line-height: 1.4 }
 .disclaimer-close { font-size: 32rpx; color: #FF9800; padding: 0 8rpx }
 
-.message-list { flex: 1; padding: 24rpx 32rpx; box-sizing: border-box; }
+// 消息列表
+.message-list {
+  flex: 1;
+  padding: 24rpx 32rpx;
+  box-sizing: border-box;
+}
 
-.welcome-msg { text-align: center; padding: 48rpx 0; }
+.welcome-screen {
+  text-align: center;
+  padding: 48rpx 0;
+}
+
 .welcome-icon { font-size: 80rpx; margin-bottom: 24rpx }
-.welcome-title { font-size: 36rpx; font-weight: 600; color: #333; margin-bottom: 12rpx }
-.welcome-desc { font-size: 26rpx; color: #999; margin-bottom: 40rpx; line-height: 1.6 }
-.quick-questions { text-align: left }
-.quick-title { font-size: 26rpx; color: #666; margin-bottom: 16rpx; font-weight: 500 }
-.quick-list { display: flex; flex-direction: column; gap: 12rpx }
-.quick-item {
-  background: #fff; border-radius: 16rpx; padding: 20rpx 24rpx;
-  font-size: 26rpx; color: #E91E63; text-align: left;
-  border: 2rpx solid #F48FB1; transition: all 0.2s;
-}
-.quick-item:active { background: #fff5f7 }
+.welcome-title { font-size: 36rpx; font-weight: 600; color: $she-title; margin-bottom: 12rpx }
+.welcome-desc { font-size: 26rpx; color: $she-muted; margin-bottom: 40rpx; line-height: 1.6 }
 
-.message-item { display: flex; gap: 16rpx; margin-bottom: 32rpx; align-items: flex-start }
-.message-item.user { flex-direction: row-reverse }
-.msg-avatar { width: 64rpx; height: 64rpx; border-radius: 50%; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 32rpx; flex-shrink: 0 }
-.message-item.assistant .msg-avatar { background: #fff5f7 }
-.msg-content { max-width: 72%; display: flex; flex-direction: column; gap: 8rpx }
-.msg-bubble {
-  background: #fff; border-radius: 20rpx; padding: 20rpx 24rpx;
-  font-size: 28rpx; color: #333; line-height: 1.7;
-  word-break: break-word; box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06);
+.quick-chips { text-align: left; }
+.chips-title { font-size: 26rpx; color: $she-sub; margin-bottom: 16rpx; font-weight: 500 }
+.chips-list { display: flex; flex-direction: column; gap: 12rpx }
+.chip-item {
+  background: $she-white;
+  border-radius: 16rpx;
+  padding: 20rpx 24rpx;
+  font-size: 26rpx;
+  color: $she-primary;
+  text-align: left;
+  border: 2rpx solid $she-primary-light;
+  transition: all 0.2s;
+  box-shadow: $she-shadow-sm;
+  &:active { background: $she-primary-bg; }
 }
-.message-item.user .msg-bubble { background: linear-gradient(135deg, #E91E63, #F48FB1); color: #fff }
-.msg-time { font-size: 20rpx; color: #bbb; padding: 0 8rpx }
+
+.message-item {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 32rpx;
+  align-items: flex-start;
+
+  &.user { flex-direction: row-reverse }
+}
+
+.msg-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: $she-bg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  flex-shrink: 0;
+}
+
+.message-item.assistant .msg-avatar { background: $she-primary-bg; }
+
+.msg-content { max-width: 72%; display: flex; flex-direction: column; gap: 8rpx }
+
+.msg-bubble {
+  background: $she-white;
+  border-radius: 20rpx;
+  padding: 20rpx 24rpx;
+  font-size: 28rpx;
+  color: $she-text;
+  line-height: 1.7;
+  word-break: break-word;
+  box-shadow: $she-shadow-sm;
+}
+
+.message-item.user .msg-bubble {
+  background: $she-gradient-primary;
+  color: #fff;
+}
+
+.msg-time { font-size: 20rpx; color: $she-muted; padding: 0 8rpx }
 .message-item.user .msg-time { text-align: right }
 
-.typing { display: flex; gap: 8rpx; align-items: center; padding: 24rpx 32rpx; min-width: 120rpx }
-.typing-dot { width: 12rpx; height: 12rpx; border-radius: 50%; background: #E91E63; animation: typing-bounce 1.4s infinite ease-in-out }
+.typing {
+  display: flex;
+  gap: 8rpx;
+  align-items: center;
+  padding: 24rpx 32rpx;
+  min-width: 120rpx;
+}
+
+.typing-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: $she-primary;
+  animation: typing-bounce 1.4s infinite ease-in-out;
+}
+
 .typing-dot:nth-child(2) { animation-delay: 0.2s }
 .typing-dot:nth-child(3) { animation-delay: 0.4s }
+
 @keyframes typing-bounce {
   0%, 60%, 100% { transform: translateY(0); opacity: 0.4 }
   30% { transform: translateY(-8rpx); opacity: 1 }
 }
 
+// 输入区
 .input-area {
-  background: #fff; padding: 16rpx 32rpx;
-  padding-bottom: 60rpx; flex-shrink: 0;
+  background: $she-white;
+  padding: 16rpx 32rpx;
+  padding-bottom: 60rpx;
+  flex-shrink: 0;
   box-shadow: 0 -4rpx 24rpx rgba(0,0,0,0.06);
 }
+
 .input-main { display: flex; align-items: flex-end; gap: 16rpx; margin-bottom: 16rpx }
+
 .chat-input {
-  flex: 1; background: #f5f5f7; border-radius: 40rpx;
-  padding: 20rpx 28rpx; font-size: 28rpx; min-height: 72rpx; max-height: 200rpx;
-  line-height: 1.5; box-sizing: border-box;
+  flex: 1;
+  background: $she-bg;
+  border-radius: 40rpx;
+  padding: 20rpx 28rpx;
+  font-size: 28rpx;
+  min-height: 72rpx;
+  max-height: 200rpx;
+  line-height: 1.5;
+  box-sizing: border-box;
 }
+
 .input-actions { display: flex; align-items: center; gap: 12rpx }
-.action-btn { font-size: 44rpx; color: #999 }
+.action-btn { font-size: 44rpx; color: $she-muted }
+
 .send-btn {
-  background: #ddd; color: #fff; border-radius: 40rpx;
-  padding: 16rpx 32rpx; font-size: 28rpx; font-weight: 500;
+  background: $she-border;
+  color: $she-white;
+  border-radius: 40rpx;
+  padding: 16rpx 32rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+
+  &.active { background: $she-gradient-primary; }
 }
-.send-btn.active { background: linear-gradient(135deg, #E91E63, #F48FB1) }
 
-.quick-actions { display: flex; justify-content: space-around; }
-.qa-item { display: flex; flex-direction: column; align-items: center; gap: 6rpx; padding: 12rpx 0 }
-.qa-icon { font-size: 36rpx }
-.qa-label { font-size: 22rpx; color: #999 }
+.quick-actions {
+  display: flex;
+  justify-content: space-around;
+}
 
-/* Model Picker */
-.model-picker-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 999; display: flex; align-items: flex-end; }
-.model-picker-sheet { background: #fff; border-radius: 24rpx 24rpx 0 0; padding: 32rpx 0; width: 100% }
-.picker-title { font-size: 30rpx; font-weight: 600; text-align: center; margin-bottom: 24rpx; color: #333 }
-.picker-item { display: flex; align-items: center; justify-content: space-between; padding: 24rpx 40rpx; transition: background 0.2s }
-.picker-item:active { background: #f5f5f7 }
-.picker-item.active { background: #fff5f7 }
-.picker-name { font-size: 28rpx; color: #333; font-weight: 500 }
-.picker-desc { font-size: 22rpx; color: #999; margin-top: 4rpx }
-.picker-check { color: #E91E63; font-size: 32rpx }
-.picker-cancel { text-align: center; color: #999; font-size: 28rpx; padding: 24rpx; margin-top: 8rpx; border-top: 1rpx solid #f0f0f0 }
+.qa-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6rpx;
+  padding: 12rpx 0;
+}
+
+.qa-icon { font-size: 36rpx; }
+.qa-label { font-size: 22rpx; color: $she-muted; }
+
+.bottom-placeholder { height: 32rpx; }
+
+// 模型选择弹窗
+.dialog-sheet { background: $she-white; border-radius: 32rpx 32rpx 0 0; padding-bottom: env(safe-area-inset-bottom); }
+
+.sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28rpx 32rpx;
+  border-bottom: 1rpx solid $she-border;
+}
+
+.sheet-cancel { font-size: 30rpx; color: $she-muted; min-width: 100rpx; }
+.sheet-title { font-size: 32rpx; font-weight: 600; color: $she-text; }
+.sheet-confirm { font-size: 30rpx; color: $she-primary; min-width: 100rpx; text-align: right; }
+
+.picker-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 40rpx;
+  transition: background 0.2s;
+  border-bottom: 1rpx solid $she-border;
+
+  &:active { background: $she-bg; }
+  &.active { background: $she-primary-bg; }
+}
+
+.picker-name { font-size: 28rpx; color: $she-text; font-weight: 500 }
+.picker-desc { font-size: 22rpx; color: $she-muted; margin-top: 4rpx }
+.picker-check { color: $she-primary; font-size: 32rpx; }
 </style>

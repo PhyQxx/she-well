@@ -1,114 +1,209 @@
 <template>
   <view class="baby-page">
-    <view class="header">
-      <view class="header-title">🍼 宝宝成长</view>
-      <view class="add-baby-btn" @click="showAddDialog = true">+ 添加宝宝</view>
-    </view>
-
-    <!-- 宝宝卡片 -->
-    <view class="baby-cards">
-      <view v-for="baby in babies" :key="baby.id" class="baby-card" @click="selectBaby(baby)">
-        <view class="baby-avatar">{{ baby.avatar || '👶' }}</view>
-        <view class="baby-info">
-          <view class="baby-name">{{ baby.name }}</view>
-          <view class="baby-age">{{ babyAge(baby.birthDate) }}</view>
-          <view class="baby-birth">生日：{{ baby.birthDate }}</view>
-        </view>
-        <view class="baby-actions">
-          <view class="action-icon" @click.stop="addMilestone(baby)">📝</view>
-          <view class="action-icon" @click.stop="addGrowth(baby)">📊</view>
+    <!-- 头部 -->
+    <view class="page-header">
+      <view class="header-bg"></view>
+      <view class="header-content">
+        <text class="header-icon">👶</text>
+        <view class="header-text">
+          <text class="header-title">宝宝成长</text>
+          <text class="header-sub">记录每一个珍贵时刻</text>
         </view>
       </view>
-      <view v-if="!babies.length" class="empty-tip">还没有宝宝信息，点击上方添加</view>
+      <view class="add-baby-btn" @click="showAddDialog = true">+ 添加</view>
+    </view>
+
+    <!-- 宝宝选择卡片 -->
+    <view class="baby-carousel" v-if="babies.length > 0">
+      <scroll-view class="baby-scroll" scroll-x>
+        <view class="baby-chips">
+          <view
+            v-for="b in babies"
+            :key="b.id"
+            class="baby-chip"
+            :class="{ active: selectedBaby?.id === b.id }"
+            @click="selectBaby(b)"
+          >
+            <text class="chip-avatar">{{ b.avatar }}</text>
+            <text class="chip-name">{{ b.name }}</text>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 当前宝宝详情 -->
+    <view class="current-baby-card" v-if="selectedBaby">
+      <view class="baby-avatar-large">{{ selectedBaby.avatar }}</view>
+      <view class="baby-detail">
+        <view class="baby-name-row">
+          <text class="baby-name">{{ selectedBaby.name }}</text>
+          <text class="baby-gender-tag" :class="'gender-' + selectedBaby.gender">
+            {{ { '女': '👧', '男': '👦' }[selectedBaby.gender] || '👶' }}
+          </text>
+        </view>
+        <view class="baby-age-display">{{ babyAge(selectedBaby.birthDate) }}</view>
+        <view class="baby-birthday">生日：{{ selectedBaby.birthDate }}</view>
+      </view>
+      <view class="baby-actions">
+        <text class="action-btn" @click.stop="addMilestone">📝</text>
+        <text class="action-btn" @click.stop="addGrowth">📊</text>
+      </view>
+    </view>
+
+    <!-- 无宝宝提示 -->
+    <view class="no-baby-card" v-else>
+      <text class="no-baby-icon">👶</text>
+      <text class="no-baby-text">还没有宝宝信息</text>
+      <text class="no-baby-sub">点击上方「添加」按钮记录宝宝信息</text>
     </view>
 
     <!-- 发育记录 -->
-    <view class="section">
-      <view class="section-title">📈 发育记录</view>
-      <view class="growth-table">
-        <view class="growth-header">
-          <text>日期</text><text>体重(kg)</text><text>身高(cm)</text>
-        </view>
-        <view v-for="g in growthRecords" :key="g.id" class="growth-row">
-          <text>{{ g.recordDate?.slice(0, 7) || g.date }}</text>
-          <text>{{ g.weight || '—' }}</text>
-          <text>{{ g.height || '—' }}</text>
-        </view>
-        <view v-if="!growthRecords.length" class="empty-tip">暂无发育记录</view>
+    <view class="section-card">
+      <view class="section-header">
+        <text class="section-title">📈 发育记录</text>
+        <text class="add-btn" @click="addGrowth">+ 记录</text>
       </view>
-      <view class="add-growth-btn" @click="addGrowth(null)">+ 记录发育</view>
+
+      <view v-if="growthRecords.length === 0" class="empty-state">
+        <text class="empty-icon">📊</text>
+        <text class="empty-text">暂无发育记录</text>
+      </view>
+
+      <view v-else class="growth-chart">
+        <view class="growth-grid">
+          <view class="growth-col">
+            <text class="growth-label">日期</text>
+            <view v-for="g in growthRecords.slice(-5)" :key="g.id" class="growth-cell date-cell">
+              {{ g.recordDate?.slice(0, 7) || g.date }}
+            </view>
+          </view>
+          <view class="growth-col">
+            <text class="growth-label">体重/kg</text>
+            <view v-for="g in growthRecords.slice(-5)" :key="g.id" class="growth-cell">
+              {{ g.weight || '—' }}
+            </view>
+          </view>
+          <view class="growth-col">
+            <text class="growth-label">身高/cm</text>
+            <view v-for="g in growthRecords.slice(-5)" :key="g.id" class="growth-cell">
+              {{ g.height || '—' }}
+            </view>
+          </view>
+        </view>
+      </view>
     </view>
 
     <!-- 里程碑 -->
-    <view class="section">
-      <view class="section-title">🌟 成长里程碑</view>
-      <view class="milestone-list">
+    <view class="section-card">
+      <view class="section-header">
+        <text class="section-title">🌟 成长里程碑</text>
+        <text class="add-btn" @click="addMilestone">+ 添加</text>
+      </view>
+
+      <view v-if="milestones.length === 0" class="empty-state">
+        <text class="empty-icon">🌟</text>
+        <text class="empty-text">暂无里程碑</text>
+      </view>
+
+      <view v-else class="milestone-list">
         <view v-for="m in milestones" :key="m.id" class="milestone-item">
-          <view class="ms-icon">{{ m.icon || '⭐' }}</view>
+          <text class="ms-icon">{{ m.icon || '⭐' }}</text>
           <view class="ms-info">
-            <view class="ms-title">{{ m.title }}</view>
-            <view class="ms-date">{{ m.milestoneDate || m.recordDate }}</view>
+            <text class="ms-title">{{ m.title }}</text>
+            <text class="ms-date">{{ m.milestoneDate || m.recordDate }}</text>
           </view>
         </view>
-        <view v-if="!milestones.length" class="empty-tip">暂无里程碑</view>
       </view>
-      <view class="add-ms-btn" @click="addMilestone(null)">+ 添加里程碑</view>
     </view>
 
     <!-- AI 发育建议 -->
-    <view class="section ai-section">
-      <view class="section-title">🤖 AI 发育建议</view>
-      <view class="ai-advice" v-if="aiAdvice">{{ aiAdvice }}</view>
-      <view class="ai-loading" v-else-if="aiLoading">正在生成...</view>
-      <view class="empty-tip" v-else>根据宝宝月龄获取科学发育建议</view>
-      <view class="ai-btn" @click="getBabyAdvice" :class="{disabled: aiLoading || !selectedBaby}">
+    <view class="section-card ai-card">
+      <view class="section-header">
+        <text class="section-title">🤖 AI 发育建议</text>
+      </view>
+
+      <view v-if="aiAdvice" class="ai-content">{{ aiAdvice }}</view>
+      <view v-else-if="aiLoading" class="ai-loading">正在生成...</view>
+      <view v-else class="empty-state">
+        <text class="empty-icon">🤖</text>
+        <text class="empty-text">根据宝宝月龄获取科学发育建议</text>
+      </view>
+
+      <view class="ai-btn" @click="getBabyAdvice" :class="{ disabled: aiLoading || !selectedBaby }">
         {{ aiLoading ? '加载中...' : '获取 AI 发育建议' }}
       </view>
     </view>
 
+    <view class="bottom-placeholder"></view>
+
     <!-- 添加宝宝弹窗 -->
     <view class="dialog-overlay" v-if="showAddDialog" @click="showAddDialog = false">
-      <view class="dialog-box" @click.stop>
-        <view class="dialog-title">添加宝宝</view>
-        <input class="dialog-input" v-model="babyForm.name" placeholder="宝宝姓名" />
-        <input class="dialog-input" v-model="babyForm.birthDate" type="date" placeholder="出生日期" />
-        <input class="dialog-input" v-model="babyForm.gender" placeholder="性别（可选：男/女）" />
-        <view class="dialog-btns">
-          <view class="dialog-cancel" @click="showAddDialog = false">取消</view>
-          <view class="dialog-confirm" @click="submitBaby">保存</view>
+      <view class="dialog-sheet" @click.stop>
+        <view class="sheet-header">
+          <text class="sheet-cancel" @click="showAddDialog = false">取消</text>
+          <text class="sheet-title">添加宝宝</text>
+          <text class="sheet-confirm" @click="submitBaby">保存</text>
+        </view>
+        <view class="sheet-form">
+          <input class="sheet-input" v-model="babyForm.name" placeholder="宝宝姓名" />
+          <input class="sheet-input" v-model="babyForm.birthDate" type="date" placeholder="出生日期" />
+          <view class="gender-picker">
+            <text class="picker-label">性别</text>
+            <view class="gender-options">
+              <view
+                v-for="g in ['男', '女']"
+                :key="g"
+                class="gender-option"
+                :class="{ selected: babyForm.gender === g }"
+                @click="babyForm.gender = g"
+              >
+                <text>{{ g === '女' ? '👧' : '👦' }}</text>
+              </view>
+            </view>
+          </view>
         </view>
       </view>
     </view>
 
     <!-- 添加里程碑弹窗 -->
     <view class="dialog-overlay" v-if="showMilestoneDialog" @click="showMilestoneDialog = false">
-      <view class="dialog-box" @click.stop>
-        <view class="dialog-title">添加里程碑</view>
-        <input class="dialog-input" v-model="milestoneForm.title" placeholder="里程碑名称（如：第一次微笑）" />
-        <input class="dialog-input" v-model="milestoneForm.date" type="date" placeholder="日期" />
-        <view class="icon-picker">
-          <text class="icon-label">选择图标：</text>
-          <view class="icon-list">
-            <text v-for="icon in iconOptions" :key="icon" class="icon-opt" :class="{selected: milestoneForm.icon === icon}" @click="milestoneForm.icon = icon">{{ icon }}</text>
-          </view>
+      <view class="dialog-sheet" @click.stop>
+        <view class="sheet-header">
+          <text class="sheet-cancel" @click="showMilestoneDialog = false">取消</text>
+          <text class="sheet-title">添加里程碑</text>
+          <text class="sheet-confirm" @click="submitMilestone">保存</text>
         </view>
-        <view class="dialog-btns">
-          <view class="dialog-cancel" @click="showMilestoneDialog = false">取消</view>
-          <view class="dialog-confirm" @click="submitMilestone">保存</view>
+        <view class="sheet-form">
+          <input class="sheet-input" v-model="milestoneForm.title" placeholder="里程碑名称（如：第一次微笑）" />
+          <input class="sheet-input" v-model="milestoneForm.date" type="date" placeholder="日期" />
+          <view class="icon-picker">
+            <text class="picker-label">选择图标</text>
+            <view class="icon-grid">
+              <text
+                v-for="icon in iconOptions"
+                :key="icon"
+                class="icon-opt"
+                :class="{ selected: milestoneForm.icon === icon }"
+                @click="milestoneForm.icon = icon"
+              >{{ icon }}</text>
+            </view>
+          </view>
         </view>
       </view>
     </view>
 
     <!-- 添加发育弹窗 -->
     <view class="dialog-overlay" v-if="showGrowthDialog" @click="showGrowthDialog = false">
-      <view class="dialog-box" @click.stop>
-        <view class="dialog-title">记录发育</view>
-        <input class="dialog-input" v-model="growthForm.date" type="date" placeholder="日期" />
-        <input class="dialog-input" v-model="growthForm.weight" type="digit" placeholder="体重（kg，如 5.6）" />
-        <input class="dialog-input" v-model="growthForm.height" type="digit" placeholder="身高（cm，如 60）" />
-        <view class="dialog-btns">
-          <view class="dialog-cancel" @click="showGrowthDialog = false">取消</view>
-          <view class="dialog-confirm" @click="submitGrowth">保存</view>
+      <view class="dialog-sheet" @click.stop>
+        <view class="sheet-header">
+          <text class="sheet-cancel" @click="showGrowthDialog = false">取消</text>
+          <text class="sheet-title">记录发育</text>
+          <text class="sheet-confirm" @click="submitGrowth">保存</text>
+        </view>
+        <view class="sheet-form">
+          <input class="sheet-input" v-model="growthForm.date" type="date" placeholder="日期" />
+          <input class="sheet-input" v-model="growthForm.weight" type="digit" placeholder="体重（kg，如 5.6）" />
+          <input class="sheet-input" v-model="growthForm.height" type="digit" placeholder="身高（cm，如 60）" />
         </view>
       </view>
     </view>
@@ -141,11 +236,10 @@ async function loadData() {
       name: b.name,
       birthDate: b.birthDate,
       avatar: b.gender === '女' ? '👧' : b.gender === '男' ? '👦' : '👶',
+      gender: b.gender || '',
     }))
     if (babies.value.length) selectedBaby.value = babies.value[0]
-  } catch (e) {
-    console.error('loadData error', e)
-  }
+  } catch (e) { console.error('loadData error', e) }
 }
 
 function babyAge(birthDate) {
@@ -171,7 +265,7 @@ async function submitBaby() {
     showAddDialog.value = false
     babyForm.value = { name: '', birthDate: '', gender: '' }
     await loadData()
-  } catch (e) { uni.showToast({ title: '添加失败', icon: 'none' }) }
+  } catch { uni.showToast({ title: '添加失败', icon: 'none' }) }
 }
 
 async function submitMilestone() {
@@ -196,62 +290,401 @@ async function getBabyAdvice() {
   try {
     const res = await ai.healthAdvice({ type: 'baby', babyId: selectedBaby.value.id })
     aiAdvice.value = res?.data?.advice || res?.advice || '暂无建议'
-  } catch (e) {
+  } catch {
     aiAdvice.value = '获取建议失败，请稍后再试。'
   } finally {
     aiLoading.value = false
   }
 }
 
-function addMilestone(baby) { showMilestoneDialog.value = true }
-function addGrowth(baby) { showGrowthDialog.value = true }
+function addMilestone() { showMilestoneDialog.value = true }
+function addGrowth() { showGrowthDialog.value = true }
 
 onMounted(loadData)
 </script>
 
-<style scoped>
-.baby-page { min-height: 100vh; background: #faf8fb; padding-bottom: 32rpx }
-.header { background: linear-gradient(135deg, #2196F3, #90CAF9); padding: 32rpx; color: #fff; display: flex; justify-content: space-between; align-items: center }
-.header-title { font-size: 36rpx; font-weight: bold }
-.add-baby-btn { font-size: 28rpx; background: rgba(255,255,255,0.25); padding: 8rpx 20rpx; border-radius: 20rpx }
-.baby-cards { padding: 24rpx 32rpx }
-.baby-card { background: #fff; border-radius: 20rpx; padding: 24rpx; display: flex; align-items: center; gap: 20rpx; margin-bottom: 16rpx; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.06) }
-.baby-avatar { font-size: 64rpx }
-.baby-info { flex: 1 }
-.baby-name { font-size: 32rpx; font-weight: 600; color: #333 }
-.baby-age { font-size: 26rpx; color: #2196F3; margin-top: 4rpx }
-.baby-birth { font-size: 24rpx; color: #999; margin-top: 2rpx }
-.baby-actions { display: flex; gap: 12rpx }
-.action-icon { font-size: 36rpx; padding: 8rpx }
-.section { background: #fff; margin: 0 32rpx 24rpx; border-radius: 20rpx; padding: 24rpx }
-.section-title { font-size: 30rpx; font-weight: 600; margin-bottom: 16rpx }
-.growth-table { background: #faf8fb; border-radius: 12rpx; overflow: hidden; margin-bottom: 16rpx }
-.growth-header { display: flex; background: #eee; padding: 12rpx 16rpx; font-size: 24rpx; color: #666; font-weight: 600 }
-.growth-row { display: flex; padding: 12rpx 16rpx; font-size: 26rpx; border-bottom: 1rpx solid #f0f0f0 }
-.growth-row text { flex: 1; text-align: center }
-.growth-row:last-child { border-bottom: none }
-.milestone-list { display: flex; flex-direction: column; gap: 12rpx; margin-bottom: 16rpx }
-.milestone-item { display: flex; gap: 16rpx; align-items: center; padding: 12rpx; background: #faf8fb; border-radius: 12rpx }
-.ms-icon { font-size: 40rpx }
-.ms-title { font-size: 28rpx; font-weight: 500; color: #333 }
-.ms-date { font-size: 24rpx; color: #999 }
-.ai-section .ai-advice { background: #faf8fb; border-radius: 12rpx; padding: 20rpx; font-size: 26rpx; color: #555; line-height: 1.6; margin-bottom: 16rpx }
-.ai-loading { text-align: center; color: #2196F3; font-size: 26rpx; padding: 20rpx }
-.ai-btn { text-align: center; background: linear-gradient(135deg, #2196F3, #90CAF9); color: #fff; padding: 20rpx; border-radius: 12rpx; font-size: 28rpx }
-.ai-btn.disabled { opacity: 0.6 }
-.add-growth-btn, .add-ms-btn { text-align: center; color: #2196F3; font-size: 28rpx; padding: 16rpx; border: 2rpx dashed #90CAF9; border-radius: 12rpx }
-.empty-tip { text-align: center; color: #ccc; font-size: 26rpx; padding: 24rpx }
-/* dialog */
-.dialog-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; display: flex; align-items: center; justify-content: center }
-.dialog-box { background: #fff; border-radius: 20rpx; padding: 40rpx; width: 560rpx }
-.dialog-title { font-size: 32rpx; font-weight: bold; text-align: center; margin-bottom: 24rpx }
-.dialog-input { border: 1rpx solid #eee; border-radius: 10rpx; padding: 16rpx; font-size: 28rpx; margin-bottom: 16rpx; width: 100%; box-sizing: border-box }
-.icon-picker { margin-bottom: 16rpx }
-.icon-label { font-size: 26rpx; color: #666; display: block; margin-bottom: 8rpx }
-.icon-list { display: flex; flex-wrap: wrap; gap: 8rpx }
-.icon-opt { font-size: 36rpx; padding: 6rpx 10rpx; border-radius: 8rpx; border: 2rpx solid transparent }
-.icon-opt.selected { border-color: #2196F3; background: #e3f2fd }
-.dialog-btns { display: flex; gap: 20rpx; margin-top: 8rpx }
-.dialog-cancel { flex: 1; text-align: center; padding: 16rpx; background: #f5f5f5; border-radius: 10rpx; color: #999; font-size: 28rpx }
-.dialog-confirm { flex: 1; text-align: center; padding: 16rpx; background: linear-gradient(135deg, #2196F3, #90CAF9); border-radius: 10rpx; color: #fff; font-size: 28rpx }
+<style lang="scss" scoped>
+@import "../../uni.scss";
+
+.baby-page {
+  min-height: 100vh;
+  background: $she-bg;
+  padding-bottom: 48rpx;
+}
+
+// 头部
+.page-header {
+  position: relative;
+  padding: 80rpx 32rpx 24rpx;
+  background: $she-gradient-nursing;
+  border-radius: 0 0 48rpx 48rpx;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-bottom: 16rpx;
+}
+
+.header-icon { font-size: 64rpx; }
+
+.header-text { display: flex; flex-direction: column; }
+
+.header-title {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #fff;
+}
+
+.header-sub {
+  font-size: 26rpx;
+  color: rgba(255,255,255,0.85);
+}
+
+.add-baby-btn {
+  position: absolute;
+  top: 80rpx;
+  right: 32rpx;
+  padding: 8rpx 24rpx;
+  background: rgba(255,255,255,0.25);
+  border-radius: 20rpx;
+  font-size: 26rpx;
+  color: #fff;
+}
+
+// 宝宝选择
+.baby-carousel {
+  margin: 24rpx 0 0;
+  padding: 0 32rpx;
+}
+
+.baby-scroll { width: 100%; }
+
+.baby-chips {
+  display: flex;
+  gap: 16rpx;
+}
+
+.baby-chip {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6rpx;
+  padding: 16rpx 24rpx;
+  background: $she-white;
+  border-radius: 20rpx;
+  box-shadow: $she-shadow-sm;
+  border: 2rpx solid transparent;
+  transition: all 0.2s ease;
+
+  &.active {
+    border-color: $she-nursing;
+    background: rgba($she-nursing, 0.06);
+  }
+}
+
+.chip-avatar { font-size: 48rpx; }
+.chip-name { font-size: 24rpx; color: $she-sub; }
+
+// 当前宝宝卡片
+.current-baby-card {
+  margin: 24rpx 32rpx;
+  background: $she-white;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  box-shadow: $she-shadow-md;
+}
+
+.baby-avatar-large { font-size: 80rpx; }
+
+.baby-detail { flex: 1; }
+
+.baby-name-row { display: flex; align-items: center; gap: 12rpx; }
+
+.baby-name {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: $she-text;
+}
+
+.baby-gender-tag {
+  font-size: 28rpx;
+}
+
+.gender-tag {
+  display: inline-block;
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  font-size: 22rpx;
+}
+
+.baby-age-display {
+  font-size: 28rpx;
+  color: $she-nursing;
+  font-weight: 600;
+  margin-top: 4rpx;
+}
+
+.baby-birthday {
+  font-size: 24rpx;
+  color: $she-muted;
+  margin-top: 2rpx;
+}
+
+.baby-actions { display: flex; gap: 12rpx; }
+
+.action-btn {
+  font-size: 36rpx;
+  padding: 8rpx;
+}
+
+// 无宝宝
+.no-baby-card {
+  margin: 24rpx 32rpx;
+  background: $she-white;
+  border-radius: 24rpx;
+  padding: 48rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  box-shadow: $she-shadow-md;
+}
+
+.no-baby-icon { font-size: 72rpx; opacity: 0.5; }
+.no-baby-text { font-size: 30rpx; font-weight: 600; color: $she-title; }
+.no-baby-sub { font-size: 26rpx; color: $she-muted; text-align: center; }
+
+// Section卡片
+.section-card {
+  background: $she-white;
+  margin: 0 32rpx 24rpx;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  box-shadow: $she-shadow-md;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.section-title { font-size: 30rpx; font-weight: 600; color: $she-title; }
+.add-btn { font-size: 26rpx; color: $she-nursing; }
+
+// 空状态
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32rpx 0;
+  gap: 10rpx;
+}
+
+.empty-icon { font-size: 48rpx; opacity: 0.5; }
+.empty-text { font-size: 26rpx; color: $she-muted; }
+
+// 发育记录
+.growth-chart { overflow-x: auto; }
+
+.growth-grid {
+  display: flex;
+  background: $she-bg;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.growth-col {
+  flex: 1;
+  min-width: 150rpx;
+}
+
+.growth-label {
+  display: block;
+  text-align: center;
+  padding: 12rpx;
+  background: rgba($she-nursing, 0.1);
+  font-size: 22rpx;
+  color: $she-nursing;
+  font-weight: 600;
+}
+
+.growth-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16rpx 8rpx;
+  font-size: 26rpx;
+  color: $she-text;
+  border-bottom: 1rpx solid rgba($she-nursing, 0.06);
+  text-align: center;
+}
+
+.date-cell {
+  font-size: 24rpx;
+  color: $she-muted;
+}
+
+// 里程碑
+.milestone-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.milestone-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 16rpx;
+  background: $she-bg;
+  border-radius: 16rpx;
+}
+
+.ms-icon { font-size: 40rpx; }
+
+.ms-info { display: flex; flex-direction: column; gap: 4rpx; }
+
+.ms-title { font-size: 28rpx; font-weight: 500; color: $she-text; }
+.ms-date { font-size: 24rpx; color: $she-muted; }
+
+// AI卡片
+.ai-card { background: $she-white; }
+
+.ai-content {
+  padding: 20rpx;
+  background: $she-bg;
+  border-radius: 16rpx;
+  font-size: 26rpx;
+  color: $she-text;
+  line-height: 1.7;
+  margin-bottom: 16rpx;
+}
+
+.ai-loading {
+  text-align: center;
+  padding: 20rpx;
+  font-size: 26rpx;
+  color: $she-nursing;
+}
+
+.ai-btn {
+  width: 100%;
+  text-align: center;
+  padding: 20rpx;
+  background: $she-gradient-nursing;
+  color: #fff;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+
+  &.disabled { opacity: 0.6; }
+}
+
+.bottom-placeholder { height: 48rpx; }
+
+// 弹窗
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.dialog-sheet {
+  width: 100%;
+  background: $she-white;
+  border-radius: 32rpx 32rpx 0 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  animation: slideUp 0.3s ease forwards;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.sheet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 28rpx 32rpx;
+  border-bottom: 1rpx solid $she-border;
+}
+
+.sheet-cancel, .sheet-confirm { font-size: 30rpx; min-width: 100rpx; }
+.sheet-cancel { color: $she-muted; }
+.sheet-title { font-size: 32rpx; font-weight: 600; color: $she-text; }
+.sheet-confirm { color: $she-nursing; text-align: right; }
+
+.sheet-form {
+  padding: 24rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.sheet-input {
+  border: 1rpx solid $she-border;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+  color: $she-text;
+}
+
+.picker-label {
+  font-size: 26rpx;
+  color: $she-sub;
+  margin-bottom: 8rpx;
+}
+
+.gender-picker {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.gender-options { display: flex; gap: 16rpx; }
+
+.gender-option {
+  padding: 12rpx 32rpx;
+  border-radius: 16rpx;
+  background: $she-bg;
+  border: 2rpx solid transparent;
+  font-size: 36rpx;
+  transition: all 0.2s ease;
+
+  &.selected {
+    border-color: $she-nursing;
+    background: rgba($she-nursing, 0.1);
+  }
+}
+
+.icon-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.icon-opt {
+  font-size: 40rpx;
+  padding: 8rpx 12rpx;
+  border-radius: 12rpx;
+  border: 2rpx solid transparent;
+  transition: all 0.2s ease;
+
+  &.selected {
+    border-color: $she-nursing;
+    background: rgba($she-nursing, 0.1);
+  }
+}
 </style>

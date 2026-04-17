@@ -1,6 +1,184 @@
-// SheWell Admin 全局样式
-$primary: #E91E63;
-$primary-light: #F48FB1;
+// ============================================================
+// SheWell Admin Design System
+// ============================================================
 
-body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-.el-menu { border-right: none !important; }
+// Brand Colors
+$admin-primary: #E91E63;
+$admin-primary-light: #F48FB1;
+$admin-primary-dark: #C2185B;
+$admin-primary-bg: rgba(#E91E63, 0.06);
+$admin-gradient: linear-gradient(135deg, #E91E63, #F48FB1);
+
+// Neutral Colors
+$admin-white: #FFFFFF;
+$admin-bg: #F5F5F7;
+$admin-bg-light: #FAFBFC;
+$admin-text: #333333;
+$admin-text-secondary: #666666;
+$admin-muted: #999999;
+$admin-border: #EEEEEE;
+$admin-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+
+// Typography
+$admin-font-size-xs: 12px;
+$admin-font-size-sm: 13px;
+$admin-font-size-base: 14px;
+$admin-font-size-md: 16px;
+$admin-font-size-lg: 18px;
+$admin-font-size-xl: 20px;
+$admin-font-size-2xl: 24px;
+
+// Spacing
+$admin-space-1: 4px;
+$admin-space-2: 8px;
+$admin-space-3: 12px;
+$admin-space-4: 16px;
+$admin-space-5: 20px;
+$admin-space-6: 24px;
+$admin-space-8: 32px;
+$admin-space-10: 40px;
+$admin-space-12: 48px;
+
+// Border Radius
+$admin-radius-sm: 6px;
+$admin-radius-md: 8px;
+$admin-radius-lg: 12px;
+$admin-radius-xl: 16px;
+$admin-radius-2xl: 24px;
+
+// Transitions
+$admin-transition-fast: 0.15s ease;
+$admin-transition-normal: 0.25s ease;
+$admin-transition-slow: 0.4s ease;
+
+// Shadows
+$admin-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+$admin-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+$admin-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+
+// Sidebar
+$admin-sidebar-width: 220px;
+$admin-sidebar-collapsed: 64px;
+$admin-header-height: 60px;
+
+// ============================================================
+// Global Styles
+// ============================================================
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+  font-size: $admin-font-size-base;
+  color: $admin-text;
+  background: $admin-bg;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Scrollbar
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.25);
+  }
+}
+
+// Element Plus Overrides
+.el-menu {
+  border-right: none !important;
+}
+
+.el-button--primary {
+  --el-button-bg-color: #{$admin-primary};
+  --el-button-border-color: #{$admin-primary};
+  --el-button-hover-bg-color: #{$admin-primary-light};
+  --el-button-hover-border-color: #{$admin-primary-light};
+  --el-button-active-bg-color: #{$admin-primary-dark};
+  --el-button-active-border-color: #{$admin-primary-dark};
+}
+
+.el-input__wrapper {
+  border-radius: $admin-radius-md !important;
+  box-shadow: none !important;
+  border: 1px solid $admin-border;
+  transition: border-color $admin-transition-fast;
+
+  &:hover {
+    border-color: $admin-primary-light;
+  }
+
+  &.is-focus {
+    border-color: $admin-primary !important;
+  }
+}
+
+// Card
+.admin-card {
+  background: $admin-white;
+  border-radius: $admin-radius-xl;
+  padding: $admin-space-6;
+  box-shadow: $admin-shadow-sm;
+  transition: box-shadow $admin-transition-normal;
+
+  &:hover {
+    box-shadow: $admin-shadow-md;
+  }
+}
+
+// Page Container
+.admin-page {
+  padding: $admin-space-6;
+  min-height: calc(100vh - #{$admin-header-height});
+}
+
+// ============================================================
+// Animations
+// ============================================================
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.fade-in {
+  animation: fadeIn 0.4s ease forwards;
+}
+
+.slide-up {
+  animation: slideUp 0.5s ease forwards;
+}
+
+.float {
+  animation: float 3s ease-in-out infinite;
+}
